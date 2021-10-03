@@ -25,6 +25,10 @@ namespace Subatomix.PowerShell.TaskHost
 {
     using static FormattableString;
 
+    /// <summary>
+    ///   A wrapper for <see cref="PSHostUserInterface"/> optimized for
+    ///   parallel task output.
+    /// </summary>
     public class TaskHostUI : PSHostUserInterface
     {
         private readonly PSHostUserInterface _ui;           // Underlying UI implementation
@@ -44,6 +48,9 @@ namespace Subatomix.PowerShell.TaskHost
             _header  = header ?? Invariant($"Task {taskId}");
         }
 
+        /// <summary>
+        ///   Gets or sets a header that appears before each line of output.
+        /// </summary>
         public string Header
         {
             get => _header;
@@ -65,12 +72,15 @@ namespace Subatomix.PowerShell.TaskHost
                 ? (_headerAtBol ??= string.Concat("[", _header, "]: "))
                 : (_headerSplit ??= string.Concat("[", _header, "]: (...) "));
 
+        /// <inheritdoc/>
         public override PSHostRawUserInterface RawUI
             => _ui.RawUI;
 
+        /// <inheritdoc/>
         public override bool SupportsVirtualTerminal
             => _ui.SupportsVirtualTerminal;
 
+        /// <inheritdoc/>
         public override void Write(string? text)
         {
             lock (_console)
@@ -80,6 +90,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void Write(ConsoleColor foreground, ConsoleColor background, string? text)
         {
             lock (_console)
@@ -89,11 +100,13 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteLine()
         {
             WriteLine("");
         }
 
+        /// <inheritdoc/>
         public override void WriteLine(string? text)
         {
             lock (_console)
@@ -103,6 +116,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteLine(ConsoleColor foreground, ConsoleColor background, string? text)
         {
             lock (_console)
@@ -112,6 +126,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteDebugLine(string? text)
         {
             lock (_console)
@@ -121,6 +136,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteVerboseLine(string? text)
         {
             lock (_console)
@@ -130,6 +146,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteWarningLine(string? text)
         {
             lock (_console)
@@ -139,6 +156,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteErrorLine(string? text)
         {
             lock (_console)
@@ -148,6 +166,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteInformation(InformationRecord record)
         {
             lock (_console)
@@ -157,6 +176,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override void WriteProgress(long sourceId, ProgressRecord record)
         {
             lock (_console)
@@ -166,6 +186,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override string ReadLine()
         {
             lock (_console)
@@ -176,6 +197,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override SecureString ReadLineAsSecureString()
         {
             lock (_console)
@@ -186,6 +208,7 @@ namespace Subatomix.PowerShell.TaskHost
             }
         }
 
+        /// <inheritdoc/>
         public override Dictionary<string, PSObject> Prompt(
             string? caption, string? message, Collection<FieldDescription> descriptions)
         {
@@ -193,6 +216,7 @@ namespace Subatomix.PowerShell.TaskHost
                 return _ui.Prompt(caption, message, descriptions);
         }
 
+        /// <inheritdoc/>
         public override int PromptForChoice(
             string? caption, string? message, Collection<ChoiceDescription> choices, int defaultChoice)
         {
@@ -200,6 +224,7 @@ namespace Subatomix.PowerShell.TaskHost
                 return _ui.PromptForChoice(caption, message, choices, defaultChoice);
         }
 
+        /// <inheritdoc/>
         public override PSCredential PromptForCredential(
             string? caption, string? message, string? userName, string? targetName)
         {
@@ -207,6 +232,7 @@ namespace Subatomix.PowerShell.TaskHost
                 return _ui.PromptForCredential(caption, message, userName, targetName);
         }
 
+        /// <inheritdoc/>
         public override PSCredential PromptForCredential(
             string? caption, string? message, string? userName, string? targetName,
             PSCredentialTypes allowedCredentialTypes, PSCredentialUIOptions options)

@@ -32,10 +32,14 @@ namespace Subatomix.PowerShell.TaskHost
         ///   specified PowerShell host, optionally with the specified header.
         /// </summary>
         /// <param name="host">
-        ///   The 
+        ///   The PowerShell host to wrap.
         /// </param>
-        /// <param name="header"></param>
-        /// <returns></returns>
+        /// <param name="header">
+        ///   A custom header that appears before each line of output.  If
+        ///   provided, this parameter overrides the default generated header.
+        ///   To change the header later, set <see cref="TaskHostUI.Header"/>
+        ///   to the desired header value.
+        /// </param>
         public TaskHost Create(PSHost host, string? header = null)
         {
             if (host is null)
