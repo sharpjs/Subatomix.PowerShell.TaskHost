@@ -1,6 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <!--
+/*
     Copyright 2021 Jeffrey Sharp
 
     Permission to use, copy, modify, and distribute this software for any
@@ -14,19 +12,25 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-  -->
+*/
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Description>Custom PSHost wrapper for parallel task output</Description>
-  </PropertyGroup>
+namespace Subatomix.PowerShell.TaskHost
+{
+    /// <summary>
+    ///   Necessary state to keep when multiple tasks are writing concurrently
+    ///   to a textual output console.
+    /// </summary>
+    internal class ConsoleState
+    {
+        /// <summary>
+        ///   Gets or sets whether the console is at the beginning of a line.
+        /// </summary>
+        internal bool IsAtBol { get; set; } = true;
 
-  <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.0.0" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Test-TaskHost.ps1" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-</Project>
+        /// <summary>
+        ///   Gets or sets the id of the task that most recently wrote to the
+        ///   console.
+        /// </summary>
+        internal int LastTaskId { get; set; }
+    }
+}
