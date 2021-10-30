@@ -53,6 +53,10 @@ namespace Subatomix.PowerShell.TaskHost
         public override Version Version
             => TaskHostFactory.Version;
 
+        /// <inheritdoc cref="UI" />
+        public TaskHostUI TaskHostUI
+            => _ui;
+
         /// <inheritdoc/>
         public override PSHostUserInterface UI
             => _ui;

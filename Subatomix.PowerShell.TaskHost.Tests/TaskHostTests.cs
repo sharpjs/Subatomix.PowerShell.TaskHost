@@ -43,6 +43,16 @@ namespace Subatomix.PowerShell.TaskHost
         }
 
         [Test]
+        public void TaskHostUI_Get()
+        {
+            using var my = new TaskHostTestHarness();
+
+            var host = my.Factory.Create();
+
+            host.TaskHostUI.Should().BeOfType<TaskHostUI>();
+        }
+
+        [Test]
         public void UI_Get()
         {
             using var my = new TaskHostTestHarness();
