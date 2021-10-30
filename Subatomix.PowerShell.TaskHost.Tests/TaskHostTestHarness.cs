@@ -13,13 +13,13 @@ namespace Subatomix.PowerShell.TaskHost
 
         public TaskHostTestHarness()
         {
-            Factory = new();
-
             Host = Mocks.Create<PSHost>();
             UI   = Mocks.Create<PSHostUserInterface>();
 
             Host.Setup(h => h.Name).Returns("MockHost");
             Host.Setup(h => h.UI  ).Returns(UI.Object);
+
+            Factory = new(Host.Object);
         }
     }
 }

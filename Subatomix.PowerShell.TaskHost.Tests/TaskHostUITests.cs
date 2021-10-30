@@ -18,10 +18,10 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            my.Factory.Create(my.Host.Object).UI
+            my.Factory.Create().UI
                 .Should().BeOfType<TaskHostUI>().AssignTo(out var ui1);
 
-            my.Factory.Create(my.Host.Object).UI
+            my.Factory.Create().UI
                 .Should().BeOfType<TaskHostUI>().AssignTo(out var ui2);
 
             ui1.Header.Should().Be("Task 1");
@@ -35,7 +35,7 @@ namespace Subatomix.PowerShell.TaskHost
 
             var header = my.Random.GetString();
 
-            my.Factory.Create(my.Host.Object, header).UI
+            my.Factory.Create(header).UI
                 .Should().BeOfType<TaskHostUI>().AssignTo(out var ui);
 
             ui.Header.Should().BeSameAs(header);
@@ -48,7 +48,7 @@ namespace Subatomix.PowerShell.TaskHost
 
             var header = my.Random.GetString();
 
-            my.Factory.Create(my.Host.Object, header).UI
+            my.Factory.Create(header).UI
                 .Should().BeOfType<TaskHostUI>().AssignTo(out var ui);
 
             ui.Header = header;
@@ -60,7 +60,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            my.Factory.Create(my.Host.Object).UI
+            my.Factory.Create().UI
                 .Should().BeOfType<TaskHostUI>().AssignTo(out var ui);
 
             ui.Invoking(u => u.Header = null!)
@@ -72,7 +72,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui    = my.Factory.Create(my.Host.Object).UI;
+            var ui    = my.Factory.Create().UI;
             var rawUI = my.Mocks.Create<PSHostRawUserInterface>().Object;
 
             my.UI.Setup(u => u.RawUI)
@@ -89,7 +89,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui = my.Factory.Create(my.Host.Object).UI;
+            var ui = my.Factory.Create().UI;
 
             my.UI.Setup(u => u.SupportsVirtualTerminal)
                 .Returns(value)
@@ -103,8 +103,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.Write    ("[1]: a"        )).Verifiable();
@@ -137,8 +137,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.Write    (fg, bg, "[1]: a"        )).Verifiable();
@@ -169,8 +169,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteLine("[1]: "  )).Verifiable();
@@ -192,8 +192,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteLine("[1]: a" )).Verifiable();
@@ -219,8 +219,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteLine(fg, bg, "[1]: a" )).Verifiable();
@@ -244,8 +244,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteDebugLine("[1]: a" )).Verifiable();
@@ -269,8 +269,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteVerboseLine("[1]: a" )).Verifiable();
@@ -294,8 +294,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteWarningLine("[1]: a" )).Verifiable();
@@ -319,8 +319,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui1 = my.Factory.Create(my.Host.Object, "1").UI;
-            var ui2 = my.Factory.Create(my.Host.Object, "2").UI;
+            var ui1 = my.Factory.Create("1").UI;
+            var ui2 = my.Factory.Create("2").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.WriteErrorLine("[1]: a" )).Verifiable();
@@ -344,7 +344,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui     = my.Factory.Create(my.Host.Object, "1").UI;
+            var ui     = my.Factory.Create("1").UI;
             var record = new InformationRecord("a", "b");
 
             my.UI
@@ -359,7 +359,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui     = my.Factory.Create(my.Host.Object, "1").UI;
+            var ui     = my.Factory.Create("1").UI;
             var record = new ProgressRecord(42, "a", "b");
 
             my.UI
@@ -374,7 +374,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui   = my.Factory.Create(my.Host.Object, "1").UI;
+            var ui   = my.Factory.Create("1").UI;
             var text = "input";
 
             var s = new MockSequence();
@@ -398,7 +398,7 @@ namespace Subatomix.PowerShell.TaskHost
             text.AppendChar('x');
             text.MakeReadOnly();
 
-            var ui   = my.Factory.Create(my.Host.Object, "1").UI;
+            var ui   = my.Factory.Create("1").UI;
 
             var s = new MockSequence();
             my.UI.InSequence(s).Setup(u => u.Write("[1]: before"))                  .Verifiable();
@@ -417,7 +417,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui     = my.Factory.Create(my.Host.Object).UI;
+            var ui     = my.Factory.Create().UI;
             var fields = new Collection<FieldDescription>();
             var values = new Dictionary<string, PSObject>();
 
@@ -434,7 +434,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var ui      = my.Factory.Create(my.Host.Object).UI;
+            var ui      = my.Factory.Create().UI;
             var choices = new Collection<ChoiceDescription>();
 
             my.UI
@@ -456,7 +456,7 @@ namespace Subatomix.PowerShell.TaskHost
             password.AppendChar('y');
             password.MakeReadOnly();
 
-            var ui         = my.Factory.Create(my.Host.Object).UI;
+            var ui         = my.Factory.Create().UI;
             var credential = new PSCredential("username", password);
 
             my.UI
@@ -478,7 +478,7 @@ namespace Subatomix.PowerShell.TaskHost
             password.AppendChar('y');
             password.MakeReadOnly();
 
-            var ui         = my.Factory.Create(my.Host.Object).UI;
+            var ui         = my.Factory.Create().UI;
             var credential = new PSCredential("username", password);
             var types      = PSCredentialTypes.Generic;
             var options    = PSCredentialUIOptions.ReadOnlyUserName;

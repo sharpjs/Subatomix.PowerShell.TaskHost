@@ -13,8 +13,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host1 = my.Factory.Create(my.Host.Object);
-            var host2 = my.Factory.Create(my.Host.Object);
+            var host1 = my.Factory.Create();
+            var host2 = my.Factory.Create();
 
             host1.InstanceId.Should().NotBeEmpty();
             host2.InstanceId.Should().NotBeEmpty().And.NotBe(host1.InstanceId);
@@ -25,8 +25,8 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host1 = my.Factory.Create(my.Host.Object);
-            var host2 = my.Factory.Create(my.Host.Object);
+            var host1 = my.Factory.Create();
+            var host2 = my.Factory.Create();
 
             host1.Name.Should().Be("TaskHost<MockHost>#1");
             host2.Name.Should().Be("TaskHost<MockHost>#2");
@@ -37,7 +37,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             host.Version.Should().BeSameAs(TaskHostFactory.Version);
         }
@@ -47,7 +47,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             host.UI.Should().BeOfType<TaskHostUI>();
         }
@@ -59,7 +59,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .Setup(h => h.DebuggerEnabled)
@@ -76,7 +76,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .SetupSet(h => h.DebuggerEnabled = value)
@@ -90,7 +90,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host     = my.Factory.Create(my.Host.Object);
+            var host     = my.Factory.Create();
             var expected = CultureInfo.GetCultureInfo("kl-GL");
 
             my.Host
@@ -106,7 +106,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host     = my.Factory.Create(my.Host.Object);
+            var host     = my.Factory.Create();
             var expected = CultureInfo.GetCultureInfo("kl-GL");
 
             my.Host
@@ -122,7 +122,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host     = my.Factory.Create(my.Host.Object);
+            var host     = my.Factory.Create();
             var expected = new PSObject("test private data");
 
             my.Host
@@ -138,7 +138,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .Setup(h => h.EnterNestedPrompt())
@@ -152,7 +152,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .Setup(h => h.ExitNestedPrompt())
@@ -166,7 +166,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .Setup(h => h.NotifyBeginApplication())
@@ -180,7 +180,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
 
             my.Host
                 .Setup(h => h.NotifyEndApplication())
@@ -194,7 +194,7 @@ namespace Subatomix.PowerShell.TaskHost
         {
             using var my = new TaskHostTestHarness();
 
-            var host = my.Factory.Create(my.Host.Object);
+            var host = my.Factory.Create();
             var code = my.Random.Next();
 
             my.Host

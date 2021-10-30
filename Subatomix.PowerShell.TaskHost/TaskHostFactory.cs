@@ -9,14 +9,30 @@ namespace Subatomix.PowerShell.TaskHost
     /// </summary>
     public class TaskHostFactory
     {
+        private readonly PSHost       _host;    // Host to be wrapped
         private readonly ConsoleState _console; // Overall console state
         private int                   _taskId;  // Counter for task IDs
 
         /// <summary>
-        ///   Initializes a new <see cref="TaskHostFactory"/> instance.
+        ///   Initializes a new <see cref="TaskHostFactory"/> instance that
+        ///   creates <see cref="TaskHost"/> objects wrapping the specified
+        ///   host.
         /// </summary>
-        public TaskHostFactory()
+        /// <param name="host">
+        ///   The host that created <see cref="TaskHost"/> objects should wrap.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="host"/> or its <see cref="PSHost.UI"/> is
+        ///   <see langword="null"/>.
+        /// </exception>
+        public TaskHostFactory(PSHost host)
         {
+            if (host is null)
+                throw new ArgumentNullException(nameof(host));
+            if (host.UI is null)
+                throw new ArgumentNullException(nameof(host) + ".UI");
+
+            _host    = host;
             _console = new();
         }
 
@@ -28,28 +44,19 @@ namespace Subatomix.PowerShell.TaskHost
             = typeof(TaskHost).Assembly.GetName().Version!;
 
         /// <summary>
-        ///   Creates a new <see cref="TaskHost"/> instance wrapping the
-        ///   specified PowerShell host, optionally with the specified header.
+        ///   Creates a new <see cref="TaskHost"/> instance.
         /// </summary>
-        /// <param name="host">
-        ///   The PowerShell host to wrap.
-        /// </param>
         /// <param name="header">
         ///   A custom header that appears before each line of output.  If
         ///   provided, this parameter overrides the default generated header.
         ///   To change the header later, set <see cref="TaskHostUI.Header"/>
         ///   to the desired header value.
         /// </param>
-        public TaskHost Create(PSHost host, string? header = null)
+        public TaskHost Create(string? header = null)
         {
-            if (host is null)
-                throw new ArgumentNullException(nameof(host));
-            if (host.UI is null)
-                throw new ArgumentNullException(nameof(host) + ".UI");
-
             var taskId = Interlocked.Increment(ref _taskId);
 
-            return new TaskHost(host, _console, taskId, header);
+            return new TaskHost(_host, _console, taskId, header);
         }
     }
 }

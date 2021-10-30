@@ -6,6 +6,8 @@ using NUnit.Framework;
 
 namespace Subatomix.PowerShell.TaskHost
 {
+    using static FluentActions;
+
     [TestFixture]
     public class TaskHostFactoryTests
     {
@@ -17,23 +19,19 @@ namespace Subatomix.PowerShell.TaskHost
         }
 
         [Test]
-        public void Create_NullHost()
+        public void Construct_NullHost()
         {
-            using var my = new TaskHostTestHarness();
-
-            my.Factory.Invoking(f => f.Create(null!))
+            Invoking(() => new TaskHostFactory(null!))
                 .Should().ThrowExactly<ArgumentNullException>()
                 .Where(e => e.ParamName == "host");
         }
 
         [Test]
-        public void Create_NullHostUI()
+        public void Construct_NullHostUI()
         {
-            using var my = new TaskHostTestHarness();
-
             var host = Mock.Of<PSHost>(); // .UI == null
 
-            my.Factory.Invoking(f => f.Create(host))
+            Invoking(() => new TaskHostFactory(host))
                 .Should().ThrowExactly<ArgumentNullException>()
                 .Where(e => e.ParamName == "host.UI");
         }
