@@ -90,7 +90,9 @@ $Host.UI.Header = "new header"
 
 Note that some PowerShell commands-that-run-commands, most notably
 `ForEach-Object -Parallel`, expose their own wrappers via the `$Host` constant,
-which makes the preceding example tricky.
+which can complicate the preceding example.  See
+[this script](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/Subatomix.PowerShell.TaskHost/Test-TaskHost.ps1)
+for workarounds.
 
 <!--
   Copyright 2022 Jeffrey Sharp
