@@ -39,14 +39,14 @@ using Subatomix.PowerShell.TaskHost;
 Create a single factory instance.
 
 ```csharp
-var factory = new TaskHostFactory();
+var factory = new TaskHostFactory(host);
 ```
 
 **For each parallel task**, use the factory to create a host wrapper for that
 task.
 
 ```csharp
-var taskHost = factory.Create(host, "task name here");
+var taskHost = factory.Create();
 ```
 
 Then use the host wrapper with a new `PowerShell` instance for that task.
