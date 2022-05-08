@@ -31,4 +31,12 @@
     <PackageReference Include="Subatomix.Testing" Version="2.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="FluentAssertions" />
+    <Using Include="FluentAssertions.FluentActions" Static="true" />
+    <Using Include="Moq" />
+    <Using Include="NUnit.Framework" />
+    <Using Include="Subatomix.Testing" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,5 @@
 /*
-    Copyright 2021 Jeffrey Sharp
+    Copyright 2022 Jeffrey Sharp
 
     Permission to use, copy, modify, and distribute this software for any
     purpose with or without fee is hereby granted, provided that the above
@@ -14,23 +14,22 @@
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-namespace Subatomix.PowerShell.TaskHost
+namespace Subatomix.PowerShell.TaskHost;
+
+/// <summary>
+///   Necessary state to keep when multiple tasks are writing concurrently to a
+///   textual output console.
+/// </summary>
+internal class ConsoleState
 {
     /// <summary>
-    ///   Necessary state to keep when multiple tasks are writing concurrently
-    ///   to a textual output console.
+    ///   Gets or sets whether the console is at the beginning of a line.
     /// </summary>
-    internal class ConsoleState
-    {
-        /// <summary>
-        ///   Gets or sets whether the console is at the beginning of a line.
-        /// </summary>
-        internal bool IsAtBol { get; set; } = true;
+    internal bool IsAtBol { get; set; } = true;
 
-        /// <summary>
-        ///   Gets or sets the id of the task that most recently wrote to the
-        ///   console.
-        /// </summary>
-        internal int LastTaskId { get; set; }
-    }
+    /// <summary>
+    ///   Gets or sets the id of the task that most recently wrote to the
+    ///   console.
+    /// </summary>
+    internal int LastTaskId { get; set; }
 }
