@@ -4,6 +4,25 @@ A PowerShell
 [`PSHost`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshost?view=powershellsdk-7.0.0)
 wrapper to improve the clarity of output from parallel tasks.
 
+The wrapper adds a prefix to each output line, identifying which task produced
+the output.
+
+```
+╭────────────────┬──────────────────────────╮
+│ Before         │ After                    │
+╞════════════════╪══════════════════════════╡
+│ Example output │ [Task 1]: Example output │
+│ Example output │ [Task 2]: Example output │
+│ Example output │ [Task 3]: Example output │
+│ Example output │ [Task 4]: Example output │
+╰────────────────┴──────────────────────────╯
+```
+
+The prefix affects all output *except* the following:
+- Normal object output from PowerShell commands.
+- Progress messages.
+- Prompts for information.
+
 ## Status
 
 [![Build](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/workflows/Build/badge.svg)](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/actions)
