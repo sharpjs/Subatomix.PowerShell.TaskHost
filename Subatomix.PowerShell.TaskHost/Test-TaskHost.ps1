@@ -15,33 +15,29 @@
 #>
 
 #Requires -Version 7
-using namespace System.Management.Automation
+using namespace Subatomix.PowerShell.TaskHost
 
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory, Position = 0)]
-    [scriptblock] $ScriptBlock,
-
-    [Parameter()]
-    [string] $Header
+    [Parameter(Position = 0)]
+    [scriptblock] $ScriptBlock = { Write-Host "This is example output" }
 )
 
-begin {
-    Add-Type -Path (Join-Path $PSScriptRoot Subatomix.PowerShell.TaskHost.dll)
-}
-
 process {
-    $Factory = [Subatomix.PowerShell.TaskHost.TaskHostFactory]::new()
+    $Script  = $ScriptBlock.ToString()
+    $Factory = [TaskHostFactory]::new($Host)
 
-    $Settings = [PSInvocationSettings]::new()
-    $Settings.Host                  = $Factory.Create($Host, "foo")
-    $Settings.ErrorActionPreference = [ActionPreference]::Stop
+    1..4 | ForEach-Object -Parallel {
+        $ScriptBlock   = [ScriptBlock]::Create($using:Script)
+        $Settings      = [System.Management.Automation.PSInvocationSettings]::new()
+        $Settings.Host = ($using:Factory).Create()
 
-    $Shell = [PowerShell]::Create()
-    try {
-        $Shell.AddScript($ScriptBlock).Invoke($null, $Settings)
-    }
-    catch {
-        $Shell.Dispose()
+        $Shell = [PowerShell]::Create()
+        try {
+            $Shell.AddScript($ScriptBlock).Invoke($null, $Settings)
+        }
+        catch {
+            $Shell.Dispose()
+        }
     }
 }

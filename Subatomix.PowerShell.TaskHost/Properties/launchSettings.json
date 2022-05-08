@@ -3,7 +3,7 @@
     "PowerShell": {
       "commandName": "Executable",
       "executablePath": "pwsh",
-      "commandLineArgs": "-NoLogo -NoProfile -NoExit -Command \"Set-PSReadLineOption -EditMode Emacs; function prompt { 'PS> ' }\"",
+      "commandLineArgs": "-NoLogo -NoProfile -NoExit -Command \"Add-Type -Path .\\Subatomix.PowerShell.TaskHost.dll; Set-PSReadLineOption -EditMode Emacs; function prompt { 'PS> ' }\"",
       "workingDirectory": "$(OutDir)"
     }
   }
