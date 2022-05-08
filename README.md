@@ -1,15 +1,86 @@
 # Subatomix.PowerShell.TaskHost
 
-Custom PSHost wrapper for parallel task output.
+A PowerShell
+[`PSHost`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshost?view=powershellsdk-7.0.0)
+wrapper to improve the clarity of output from parallel tasks.
 
 ## Status
 
-WIP
+[![Build](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/workflows/Build/badge.svg)](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/actions)
+[![NuGet](https://img.shields.io/nuget/v/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
+[![NuGet](https://img.shields.io/nuget/dt/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
 
+- **Stable(ish):** a prior version has been in private use for years with no
+                   reported defects, but a few changes have been made in
+                   preparation for public release.
+- **Tested:**      100% coverage by automated tests.
+- **Documented:**  IntelliSense on everything.  General usage documentation
+                   is in progress.
 ## Installation
 
-WIP
+Install
+[this NuGet Package](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
+in your project.
 
 ## Usage
 
-WIP
+### The Basics
+
+These examples assume the existence of variables `host` and `scriptBlock` which
+are a PowerShell `PSHost` and `ScriptBlock`, respectively.  Such a situation
+might arise, for instance, when writing a PowerShell cmdlet.
+
+First, import the namespace.
+
+```csharp
+using Subatomix.PowerShell.TaskHost;
+```
+
+Create a single factory instance.
+
+```csharp
+var factory = new TaskHostFactory();
+```
+
+**For each parallel task**, use the factory to create a host wrapper for that
+task.
+
+```csharp
+var taskHost = factory.Create(host, "task name here");
+```
+
+Then use the host wrapper with a new `PowerShell` instance for that task.
+
+```csharp
+using (var shell = PowerShell.Create())
+{
+    var settings = new PSInvocationSettings { Host = taskHost };
+    shell.AddScript(scriptBlock).Invoke(null, settings);
+}
+```
+
+### Advanced Usage
+
+The host wrapper, `TaskHost`, exposes a `Header` property to enable the task to
+examine and change the header that appears before each line of output.  This
+property is modifiable from the task script itself.
+
+```powershell
+$Host.UI.Header = "new header"
+```
+
+<!--
+  Copyright 2022 Jeffrey Sharp
+
+  Permission to use, copy, modify, and distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->

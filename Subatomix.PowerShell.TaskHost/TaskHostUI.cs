@@ -20,8 +20,8 @@ using System.Security;
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
-///   A wrapper for <see cref="PSHostUserInterface"/> to improve output from
-///   parallel tasks.
+///   A wrapper for <see cref="PSHostUserInterface"/> to improve the clarity of
+///   output from parallel tasks.
 /// </summary>
 public class TaskHostUI : PSHostUserInterface
 {

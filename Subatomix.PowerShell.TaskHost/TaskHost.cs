@@ -19,7 +19,8 @@ using System.Globalization;
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
-///   A wrapper for <see cref="PSHost"/> to improve output from parallel tasks.
+///   A wrapper for <see cref="PSHost"/> to improve the clarity of output from
+///   parallel tasks.
 /// </summary>
 public class TaskHost : PSHost
 {

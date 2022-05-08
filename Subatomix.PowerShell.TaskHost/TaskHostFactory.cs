@@ -26,9 +26,8 @@ public class TaskHostFactory
     private int                   _taskId;  // Counter for task IDs
 
     /// <summary>
-    ///   Initializes a new <see cref="TaskHostFactory"/> instance that
-    ///   creates <see cref="TaskHost"/> objects wrapping the specified
-    ///   host.
+    ///   Initializes a new <see cref="TaskHostFactory"/> instance that creates
+    ///   <see cref="TaskHost"/> objects wrapping the specified host.
     /// </summary>
     /// <param name="host">
     ///   The host that created <see cref="TaskHost"/> objects should wrap.
@@ -49,8 +48,7 @@ public class TaskHostFactory
     }
 
     /// <summary>
-    ///   Gets the version of the <see cref="TaskHostFactory"/>
-    ///   implementation.
+    ///   Gets the version of the <see cref="TaskHostFactory"/> implementation.
     /// </summary>
     public static Version Version { get; }
         = typeof(TaskHost).Assembly.GetName().Version!;
