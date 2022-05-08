@@ -80,13 +80,17 @@ using (var shell = PowerShell.Create())
 
 ### Advanced Usage
 
-The host wrapper, `TaskHost`, exposes a `Header` property to enable the task to
-examine and change the header that appears before each line of output.  This
-property is modifiable from the task script itself.
+The host wrapper exposes a `Header` property to enable a task to examine and
+change the header that appears in square brackets `[ ]` before each line of
+output.  This property is modifiable from the task script itself.
 
 ```powershell
 $Host.UI.Header = "new header"
 ```
+
+Note that some PowerShell commands-that-run-commands, most notably
+`ForEach-Object -Parallel`, expose their own wrappers via the `$Host` constant,
+which makes the preceding example tricky.
 
 <!--
   Copyright 2022 Jeffrey Sharp
