@@ -29,12 +29,13 @@ The prefix affects all output *except* the following:
 [![NuGet](https://img.shields.io/nuget/v/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
 [![NuGet](https://img.shields.io/nuget/dt/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
 
-- **Stable(ish):** a prior version has been in private use for years with no
+- **Stable(ish):** A prior version has been in private use for years with no
                    reported defects, but a few changes have been made in
-                   preparation for public release.
+                   preparation for public release.  No significant changes
+                   are planned.
 - **Tested:**      100% coverage by automated tests.
-- **Documented:**  IntelliSense on everything.  General usage documentation
-                   is in progress.
+- **Documented:**  IntelliSense on everything.  Quick-start guide below.
+
 ## Installation
 
 Install
