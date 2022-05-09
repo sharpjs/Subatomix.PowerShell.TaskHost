@@ -22,6 +22,14 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);IDT002</NoWarn>
+    <!--
+      IDT002: No matching documentation could be found for: ..., which attempts to inherit from: ...
+        - Rationale: System.Management.Automation is missing a bunch of its IntelliSense.
+    -->
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Management.Automation" Version="7.0.0" PrivateAssets="all" />
   </ItemGroup>
