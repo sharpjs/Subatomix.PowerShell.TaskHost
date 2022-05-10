@@ -62,7 +62,7 @@ process {
         $State = [InitialSessionState]::CreateDefault2()
         $State.Variables.Add(
             [System.Management.Automation.Runspaces.SessionStateVariableEntry]::new(
-                "TaskHost", $TaskHost, "Constant,AllScope"
+                "TaskHost", $TaskHost, $null, "Constant,AllScope"
             )
         )
 
