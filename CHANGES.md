@@ -14,3 +14,8 @@ Future release.
 
 ## [1.0.0](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/tree/release/1.0.0)
 Initial release.
+
+<!--
+  Copyright 2023 Subatomix Research Inc.
+  SPDX-License-Identifier: ISC
+-->
