@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: ISC
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Security;
 
 namespace Subatomix.PowerShell.TaskHost;
@@ -12,13 +13,12 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
-    private readonly ConsoleState        _console;      // Console state shared among tasks
-    private readonly int                 _taskId;       // Ordinal identifier of this task
-    private          bool                _taskBol;      // Whether this task should be at BOL
-    private          string              _header;       // Short display name for this task
-    private          string?             _headerAtBol;  // - both console and task at BOL
-    private          string?             _headerSplit;  // - only console at BOL
+    private readonly PSHostUserInterface   _ui;             // Underlying UI implementation
+    private readonly ConsoleState          _console;        // Console state shared among tasks
+    private readonly int                   _taskId;         // Ordinal identifier of this task
+    private          bool                  _taskBol;        // Whether this task should be at BOL
+    private          string                _header;         // Short display name for this task
+    private          Func<string?, string> _prepareAtBol;   // Prepares text for display at BOL
 
     internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
     {
@@ -26,7 +26,7 @@ public class TaskHostUI : PSHostUserInterface
         _console = console;
         _taskId  = taskId;
         _taskBol = true;
-        _header  = header ?? Invariant($"Task {taskId}");
+        Header   = header ?? Invariant($"Task {taskId}");
     }
 
     /// <summary>
@@ -35,23 +35,23 @@ public class TaskHostUI : PSHostUserInterface
     public string Header
     {
         get => _header;
+        [MemberNotNull(nameof(_header))]
+        [MemberNotNull(nameof(_prepareAtBol))]
         set
         {
             lock (_console)
             {
-                _header      = value ?? throw new ArgumentNullException(nameof(value));
-                _headerAtBol = null;
-                _headerSplit = null;
+                _header       = value ?? throw new ArgumentNullException(nameof(value));
+                _prepareAtBol = _console.Stopwatch is not null
+                    ? value.Length > 0
+                        ? PrepareAtBolWithElapsedTimeAndHeader
+                        : PrepareAtBolWithElapsedTime
+                    : value.Length > 0
+                        ? PrepareAtBolWithHeader
+                        : PrepareAtBol;
             }
         }
     }
-
-    private string PreRenderedHeader
-        // If this task last wrote a partial line that was interrupted by
-        // some other task, add a line continuation indicator.
-        => _taskBol
-            ? (_headerAtBol ??= string.Concat("[", _header, "]: "))
-            : (_headerSplit ??= string.Concat("[", _header, "]: (...) "));
 
     /// <inheritdoc/>
     public override PSHostRawUserInterface RawUI
@@ -244,7 +244,51 @@ public class TaskHostUI : PSHostUserInterface
         // The console is at BOL.  Prefix the text with the line header.  If
         // this task last wrote a partial line that was interrupted by some
         // other task, add a line continuation indicator.
-        return string.Concat(PreRenderedHeader, text);
+        return _prepareAtBol(text);
+    }
+
+    private string PrepareAtBolWithElapsedTimeAndHeader(string? text)
+    {
+        var elapsed = _console.Stopwatch!.Elapsed;
+
+        // If this task last wrote a partial line that was interrupted by some
+        // other task, add a line continuation indicator.
+        var template = _taskBol
+            ? @"[+{0:hh\:mm\:ss}] [{1}]: {2}"
+            : @"[+{0:hh\:mm\:ss}] [{1}]: (...) {2}";
+
+        return string.Format(template, elapsed, _header, text);
+    }
+
+    private string PrepareAtBolWithElapsedTime(string? text)
+    {
+        var elapsed = _console.Stopwatch!.Elapsed;
+
+        // If this task last wrote a partial line that was interrupted by some
+        // other task, add a line continuation indicator.
+        var template = _taskBol
+            ? @"[+{0:hh\:mm\:ss}] {2}"
+            : @"[+{0:hh\:mm\:ss}] (...) {2}";
+
+        return string.Format(template, elapsed, text);
+    }
+
+    private string PrepareAtBolWithHeader(string? text)
+    {
+        // If this task last wrote a partial line that was interrupted by some
+        // other task, add a line continuation indicator.
+        var separator = _taskBol ? "]: " : "]: (...) ";
+
+        return string.Concat("[", _header, separator, text);
+    }
+
+    private string PrepareAtBol(string? text)
+    {
+        // If this task last wrote a partial line that was interrupted by some
+        // other task, add a line continuation indicator.
+        var separator = _taskBol ? string.Empty : "(...) ";
+
+        return string.Concat(separator, text);
     }
 
     private void Update(bool eol)

@@ -1,6 +1,8 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using System.Diagnostics;
+
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
@@ -14,7 +16,7 @@ public class TaskHostFactory
 
     /// <summary>
     ///   Initializes a new <see cref="TaskHostFactory"/> instance that creates
-    ///   <see cref="TaskHost"/> objects wrapping the specified host.
+    ///   <see cref="TaskHost"/> object that wrap the specified host.
     /// </summary>
     /// <param name="host">
     ///   The host that created <see cref="TaskHost"/> objects should wrap.
@@ -24,6 +26,44 @@ public class TaskHostFactory
     ///   <see langword="null"/>.
     /// </exception>
     public TaskHostFactory(PSHost host)
+        : this(host, null) { }
+
+    /// <summary>
+    ///   Initializes a new <see cref="TaskHostFactory"/> instance that creates
+    ///   <see cref="TaskHost"/> objects that wrap the specified host and that
+    ///   optionally report time elapsed since construction of the factory.
+    /// </summary>
+    /// <param name="host">
+    ///   The host that created <see cref="TaskHost"/> objects should wrap.
+    /// </param>
+    /// <param name="withElapsed">
+    ///   <see langword="true"/>  to report elapsed time;
+    ///   <see langword="false"/> otherwise.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="host"/> or its <see cref="PSHost.UI"/> is
+    ///   <see langword="null"/>.
+    /// </exception>
+    public TaskHostFactory(PSHost host, bool withElapsed)
+        : this(host, withElapsed ? Stopwatch.StartNew() : null) { }
+
+    /// <summary>
+    ///   Initializes a new <see cref="TaskHostFactory"/> instance that creates
+    ///   <see cref="TaskHost"/> objects that wrap the specified host and that
+    ///   optionally report time elapsed measured by the specified stopwatch.
+    /// </summary>
+    /// <param name="host">
+    ///   The host that created <see cref="TaskHost"/> objects should wrap.
+    /// </param>
+    /// <param name="stopwatch">
+    ///   The stopwatch to measure elapsed time, or <see langword="null"/> to
+    ///   not report elapsed time.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="host"/> or its <see cref="PSHost.UI"/> is
+    ///   <see langword="null"/>.
+    /// </exception>
+    public TaskHostFactory(PSHost host, Stopwatch? stopwatch)
     {
         if (host is null)
             throw new ArgumentNullException(nameof(host));
@@ -31,7 +71,7 @@ public class TaskHostFactory
             throw new ArgumentNullException(nameof(host) + ".UI");
 
         _host    = host;
-        _console = new();
+        _console = new() { Stopwatch = stopwatch };
     }
 
     /// <summary>
