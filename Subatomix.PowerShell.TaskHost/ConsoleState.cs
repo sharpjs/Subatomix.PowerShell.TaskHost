@@ -11,12 +11,13 @@ internal class ConsoleState
 {
     /// <summary>
     ///   Gets or sets whether the console is at the beginning of a line.
+    ///   The default value is <see langword="true"/>.
     /// </summary>
     internal bool IsAtBol { get; set; } = true;
 
     /// <summary>
     ///   Gets or sets the id of the task that most recently wrote to the
-    ///   console.
+    ///   console.  The default value is <c>0</c>.
     /// </summary>
     internal int LastTaskId { get; set; }
 }
