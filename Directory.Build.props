@@ -18,7 +18,7 @@
     <VersionPrefix>1.0.0</VersionPrefix>
     <Authors>Jeffrey Sharp</Authors>
     <Company>Subatomix Research Inc.</Company>
-    <Copyright>© $([System.DateTime]::UtcNow.Year) $(Authors)</Copyright>
+    <Copyright>© $([System.DateTime]::UtcNow.Year) $(Company)</Copyright>
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/sharpjs/Subatomix.PowerShell.TaskHost</PackageProjectUrl>
     <PackageTags>PSHost Task Worker</PackageTags>
@@ -30,17 +30,27 @@
 
   <!-- Build properties -->
   <PropertyGroup>
-    <LangVersion>10</LangVersion>
+    <LangVersion>11</LangVersion>
     <ImplicitUsings>true</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <InheritDocEnabled>true</InheritDocEnabled>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.FormattableString" Static="true" />
+  </ItemGroup>
 
   <!-- Packaging properties -->
   <PropertyGroup>
-    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <PackageOutputPath>..\dist\</PackageOutputPath>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <!-- Hide .root project output -->

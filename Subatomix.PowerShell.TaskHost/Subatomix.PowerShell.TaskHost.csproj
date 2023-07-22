@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Description>A PowerShell PSHost wrapper to improve the clarity of output from parallel tasks</Description>
+    <Description>A PowerShell PSHost wrapper to improve the clarity of output from parallel tasks.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -20,7 +20,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Management.Automation"
+                      Version="[7.0.0, 8.0.0)" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

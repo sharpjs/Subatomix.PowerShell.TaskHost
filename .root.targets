@@ -1,5 +1,5 @@
-﻿<Project Sdk="Microsoft.Build.NoTargets/3.4.0">
-  <!-- https://github.com/microsoft/MSBuildSdks/tree/master/src/NoTargets -->
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.0">
+  <!-- https://github.com/microsoft/MSBuildSdks/tree/main/src/NoTargets -->
 
   <!--
     Copyright 2023 Subatomix Research Inc.
@@ -13,10 +13,16 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <IsPublishable>false</IsPublishable>
     <IsPackable>false</IsPackable>
+    <DefaultItemExcludesInProjectFolder>
+      Subatomix.*\**;
+      coverage\**;
+      dist\**;
+      $(DefaultItemExcludesInProjectFolder)
+    </DefaultItemExcludesInProjectFolder>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="**" Exclude="Subatomix.*\**;dist\**;coverage\**;$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(MSBuildThisFile)" />
+    <None Include="**"    Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(MSBuildThisFile)" />
     <None Include=".*\**" Exclude=".git\**;.vs\**" />
   </ItemGroup>
 

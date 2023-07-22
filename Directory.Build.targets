@@ -32,7 +32,7 @@
 
   <!-- Versioning -->
   <ItemGroup>
-    <PackageReference Include="Subatomix.Build.Versioning.Semantic" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="Subatomix.Build.Versioning.Semantic" Version="1.0.1" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- <inheritdoc/> support -->
@@ -40,7 +40,7 @@
     <PackageReference Include="SauceControl.InheritDoc" Version="1.3.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- SourceLink https://github.com/dotnet/sourcelink/blob/master/README.md -->
+  <!-- SourceLink https://github.com/dotnet/sourcelink/blob/main/README.md -->
   <ItemGroup Condition="'$(IsPackable)' == 'true'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
   </ItemGroup>

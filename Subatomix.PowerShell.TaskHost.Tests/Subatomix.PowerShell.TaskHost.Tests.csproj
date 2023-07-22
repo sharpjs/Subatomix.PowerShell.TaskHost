@@ -16,16 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.0.0" PrivateAssets="all" />
-    <PackageReference Include="Subatomix.Testing" Version="2.5.1-rc.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="FluentAssertions" />
-    <Using Include="FluentAssertions.FluentActions" Static="true" />
-    <Using Include="Moq" />
-    <Using Include="NUnit.Framework" />
-    <Using Include="Subatomix.Testing" />
+    <PackageReference Include="Subatomix.Testing" Version="2.5.1" />
+    <PackageReference Include="System.Management.Automation"
+                      Version="[7.0.13, 8.0.0)" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
