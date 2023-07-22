@@ -84,9 +84,9 @@ jobs:
 
       - name: Publish Coverage Summary
         run: >
-          Get-Content $env:REPORT_PATH -Raw >> $env:GITHUB_STEP_SUMMARY 
+          cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
         env:
-          REPORT_PATH: ${{ runner.temp }}\coverage\SummaryGithub.md
+          REPORT_PATH: ${{ runner.temp }}/coverage/SummaryGithub.md
 
       - name: Save Coverage Report
         uses: actions/upload-artifact@v3
