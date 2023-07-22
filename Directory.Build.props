@@ -15,7 +15,7 @@
   <!-- Descriptive properties -->
   <PropertyGroup>
     <Product>Subatomix.PowerShell.TaskHost</Product>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <Authors>Jeffrey Sharp</Authors>
     <Company>Subatomix Research Inc.</Company>
     <Copyright>© $([System.DateTime]::UtcNow.Year) $(Company)</Copyright>
