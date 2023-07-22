@@ -1,6 +1,8 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using System.Diagnostics;
+
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
@@ -20,4 +22,10 @@ internal class ConsoleState
     ///   console.  The default value is <c>0</c>.
     /// </summary>
     internal int LastTaskId { get; set; }
+
+    /// <summary>
+    ///   Gets or sets the optional stopwatch used to report elapsed time on
+    ///   the console.  The default value is <see langword="null"/>.
+    /// </summary>
+    internal Stopwatch? Stopwatch { get; set; }
 }
