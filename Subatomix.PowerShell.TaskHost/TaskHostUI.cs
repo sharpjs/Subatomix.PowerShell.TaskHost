@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: ISC
 
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Security;
 
 namespace Subatomix.PowerShell.TaskHost;
@@ -13,12 +12,12 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface   _ui;             // Underlying UI implementation
-    private readonly ConsoleState          _console;        // Console state shared among tasks
-    private readonly int                   _taskId;         // Ordinal identifier of this task
-    private          bool                  _taskBol;        // Whether this task should be at BOL
-    private          string                _header;         // Short display name for this task
-    private          Func<string?, string> _prepareAtBol;   // Prepares text for display at BOL
+    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
+    private readonly ConsoleState        _console;      // Console state shared among tasks
+    private readonly int                 _taskId;       // Ordinal identifier of this task
+    private          bool                _taskBol;      // Whether this task should be at BOL
+    private          string              _header;       // Short display name for this task
+    private          string?             _headerCache;  // ... pre-rendered for display
 
     internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
     {
@@ -26,7 +25,7 @@ public class TaskHostUI : PSHostUserInterface
         _console = console;
         _taskId  = taskId;
         _taskBol = true;
-        Header   = header ?? Invariant($"Task {taskId}");
+        _header  = header ?? Invariant($"Task {taskId}");
     }
 
     /// <summary>
@@ -35,20 +34,12 @@ public class TaskHostUI : PSHostUserInterface
     public string Header
     {
         get => _header;
-        [MemberNotNull(nameof(_header))]
-        [MemberNotNull(nameof(_prepareAtBol))]
         set
         {
             lock (_console)
             {
-                _header       = value ?? throw new ArgumentNullException(nameof(value));
-                _prepareAtBol = _console.Stopwatch is not null
-                    ? value.Length > 0
-                        ? PrepareAtBolWithElapsedTimeAndHeader
-                        : PrepareAtBolWithElapsedTime
-                    : value.Length > 0
-                        ? PrepareAtBolWithHeader
-                        : PrepareAtBol;
+                _header      = value ?? throw new ArgumentNullException(nameof(value));
+                _headerCache = null;
             }
         }
     }
@@ -66,7 +57,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.Write(Prepare(text));
+            Prepare();
+            _ui.Write(text);
             Update(EndsWithEol(text));
         }
     }
@@ -76,7 +68,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.Write(foreground, background, Prepare(text));
+            Prepare();
+            _ui.Write(foreground, background, text);
             Update(EndsWithEol(text));
         }
     }
@@ -84,7 +77,12 @@ public class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteLine()
     {
-        WriteLine("");
+        lock (_console)
+        {
+            Prepare();
+            _ui.WriteLine();
+            Update(eol: true);
+        }
     }
 
     /// <inheritdoc/>
@@ -92,7 +90,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteLine(Prepare(text));
+            Prepare();
+            _ui.WriteLine(text);
             Update(eol: true);
         }
     }
@@ -102,7 +101,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteLine(foreground, background, Prepare(text));
+            Prepare();
+            _ui.WriteLine(foreground, background, text);
             Update(eol: true);
         }
     }
@@ -112,7 +112,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteDebugLine(Prepare(text));
+            Prepare();
+            _ui.WriteDebugLine(text);
             Update(eol: true);
         }
     }
@@ -122,7 +123,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteVerboseLine(Prepare(text));
+            Prepare();
+            _ui.WriteVerboseLine(text);
             Update(eol: true);
         }
     }
@@ -132,7 +134,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteWarningLine(Prepare(text));
+            Prepare();
+            _ui.WriteWarningLine(text);
             Update(eol: true);
         }
     }
@@ -142,7 +145,8 @@ public class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            _ui.WriteErrorLine(Prepare(text));
+            Prepare();
+            _ui.WriteErrorLine(text);
             Update(eol: true);
         }
     }
@@ -223,76 +227,67 @@ public class TaskHostUI : PSHostUserInterface
                 caption, message, userName, targetName, allowedCredentialTypes, options);
     }
 
-    private string Prepare(string? text)
+    private void Prepare()
     {
-        if (!_console.IsAtBol)
-        {
-            if (_console.LastTaskId == _taskId)
-                // The console is not at BOL, but this task was the last one
-                // to write to it.  The console state is as the task expects.
-                // There is no need to modify the console state or to add any
-                // information to the text.
-                return text ?? "";
+        // Assume locked _console
 
+        if (_console.IsAtBol)
+        {
+            // The console is at BOL.
+        }
+        else if (_console.LastTaskId != _taskId)
+        {
             // The console is not at BOL, because some other task wrote a
             // partial line to it.  End that line, so that this task's text
             // will start on a new line.
             _ui.WriteLine();
             _console.IsAtBol = true;
         }
+        else
+        {
+            // The console is not at BOL, but this task was the last one to
+            // write to it.  The console state is as the task expects. There is
+            // no need to modify the console state or to emit any header.
+            return;
+        }
 
-        // The console is at BOL.  Prefix the text with the line header.  If
-        // this task last wrote a partial line that was interrupted by some
-        // other task, add a line continuation indicator.
-        return _prepareAtBol(text);
+        PrepareAtBol();
     }
 
-    private string PrepareAtBolWithElapsedTimeAndHeader(string? text)
+    private void PrepareAtBol()
     {
-        var elapsed = _console.Stopwatch!.Elapsed;
+        // Assume locked _console
 
-        // If this task last wrote a partial line that was interrupted by some
-        // other task, add a line continuation indicator.
-        var template = _taskBol
-            ? @"[+{0:hh\:mm\:ss}] [{1}]: {2}"
-            : @"[+{0:hh\:mm\:ss}] [{1}]: (...) {2}";
+        // The console is at BOL.  Emit a line header.  If this task last wrote
+        // a partial line that was interrupted by some other task, add a line
+        // continuation indicator.
 
-        return string.Format(template, elapsed, _header, text);
-    }
+        if (_console.Stopwatch is { Elapsed: var elapsed })
+            _ui.Write(
+                foregroundColor: ConsoleColor.DarkGray,
+                backgroundColor: ConsoleColor.Black,
+                string.Format(@"[+{0:hh\:mm\:ss}] ", elapsed)
+            );
 
-    private string PrepareAtBolWithElapsedTime(string? text)
-    {
-        var elapsed = _console.Stopwatch!.Elapsed;
+        if (_header.Length > 0)
+            _ui.Write(
+                foregroundColor: ConsoleColor.DarkBlue,
+                backgroundColor: ConsoleColor.Black,
+                _headerCache ??= string.Concat("[", _header, "]: ")
+            );
 
-        // If this task last wrote a partial line that was interrupted by some
-        // other task, add a line continuation indicator.
-        var template = _taskBol
-            ? @"[+{0:hh\:mm\:ss}] {1}"
-            : @"[+{0:hh\:mm\:ss}] (...) {1}";
-
-        return string.Format(template, elapsed, text);
-    }
-
-    private string PrepareAtBolWithHeader(string? text)
-    {
-        // If this task last wrote a partial line that was interrupted by some
-        // other task, add a line continuation indicator.
-        var separator = _taskBol ? "]: " : "]: (...) ";
-
-        return string.Concat("[", _header, separator, text);
-    }
-
-    private string PrepareAtBol(string? text)
-    {
-        // If this task last wrote a partial line that was interrupted by some
-        // other task, add a line continuation indicator.
-        var separator = _taskBol ? string.Empty : "(...) ";
-
-        return string.Concat(separator, text);
+        if (!_taskBol)
+            _ui.Write(
+                foregroundColor: ConsoleColor.DarkGray,
+                backgroundColor: ConsoleColor.Black,
+                "(...) "
+            );
     }
 
     private void Update(bool eol)
     {
+        // Assume locked _console
+
         _console.IsAtBol    = _taskBol = eol;
         _console.LastTaskId = _taskId;
     }
