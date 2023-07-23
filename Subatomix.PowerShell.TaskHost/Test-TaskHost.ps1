@@ -31,7 +31,7 @@ param (
 
 process {
     # Create the factory for per-task hosts.
-    $Factory = [TaskHostFactory]::new($Host)
+    $Factory = [TaskHostFactory]::new($Host, <#withElapsed:#> $true)
 
     # HACK: ForEach-Object -Parallel { $using:SomeScriptBlock } is unsupported.
     # Must stringify the -ScriptBlock here, then reconstitute it in each task.
