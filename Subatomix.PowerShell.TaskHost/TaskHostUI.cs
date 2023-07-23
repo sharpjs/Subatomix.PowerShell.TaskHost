@@ -267,8 +267,8 @@ public class TaskHostUI : PSHostUserInterface
         // If this task last wrote a partial line that was interrupted by some
         // other task, add a line continuation indicator.
         var template = _taskBol
-            ? @"[+{0:hh\:mm\:ss}] {2}"
-            : @"[+{0:hh\:mm\:ss}] (...) {2}";
+            ? @"[+{0:hh\:mm\:ss}] {1}"
+            : @"[+{0:hh\:mm\:ss}] (...) {1}";
 
         return string.Format(template, elapsed, text);
     }
