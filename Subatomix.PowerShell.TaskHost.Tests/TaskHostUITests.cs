@@ -6,6 +6,8 @@ using System.Security;
 
 namespace Subatomix.PowerShell.TaskHost;
 
+using static It;
+
 [TestFixture]
 public class TaskHostUITests
 {
@@ -14,6 +16,9 @@ public class TaskHostUITests
         HeaderFg = ConsoleColor.DarkBlue,
         MoreFg   = ConsoleColor.DarkGray,
         Bg       = ConsoleColor.Black;
+
+    private const string
+        StampRe = @"^\[\+[0-9]{2}:[0-9]{2}:[0-9]{2}\] $";
 
     [Test]
     public void Header_Get_Default()
@@ -109,24 +114,147 @@ public class TaskHostUITests
         var ui2 = my.Factory.Create("2").UI;
 
         var s = new MockSequence();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                   "a"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                    null      )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                    "\n"      )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                    null      )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                   "b"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                          )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[2]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                   "c"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                          )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(MoreFg,   Bg,      "(...) "   )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                         "d"  )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                          "\n")).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[2]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(MoreFg,   Bg,      "(...) "   )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                         "e"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "a"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    "\n"      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "b"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "c"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                         "d"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                          "\n")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                         "e"  )).Verifiable();
+
+        ui1.Write("a");
+        ui1.Write(null);
+        ui1.Write("\n");
+        ui1.Write(null);
+        ui1.Write("b");
+        ui2.Write("c");
+        ui1.Write("d");
+        ui1.Write("\n");
+        ui2.Write("e");
+    }
+
+    [Test]
+    public void Write_WithElapsed()
+    {
+        using var my = new TaskHostTestHarness(withElapsed: true);
+
+        var ui1 = my.Factory.Create("1").UI;
+        var ui2 = my.Factory.Create("2").UI;
+
+        var s = new MockSequence();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg,  Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "a"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    "\n"      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg,  Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "b"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg,  Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "c"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg,  Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                         "d"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                          "\n")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg,  Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                         "e"  )).Verifiable();
+
+        ui1.Write("a");
+        ui1.Write(null);
+        ui1.Write("\n");
+        ui1.Write(null);
+        ui1.Write("b");
+        ui2.Write("c");
+        ui1.Write("d");
+        ui1.Write("\n");
+        ui2.Write("e");
+    }
+
+    [Test]
+    public void Write_EmptyHeader()
+    {
+        using var my = new TaskHostTestHarness();
+
+        var ui1 = my.Factory.Create("1").TaskHostUI;
+        var ui2 = my.Factory.Create("2").TaskHostUI;
+
+        ui1.Header = "";
+        ui2.Header = "";
+
+        var s = new MockSequence();
+        my.UI.InSequence(s).Setup(u => u.Write    (            "a"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             "\n"      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (            "b"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                       )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (            "c"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                       )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg, Bg, "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                  "d"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "\n")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg, Bg, "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                  "e"  )).Verifiable();
+
+        ui1.Write("a");
+        ui1.Write(null);
+        ui1.Write("\n");
+        ui1.Write(null);
+        ui1.Write("b");
+        ui2.Write("c");
+        ui1.Write("d");
+        ui1.Write("\n");
+        ui2.Write("e");
+    }
+
+    [Test]
+    public void Write_EmptyHeader_WithElapsed()
+    {
+        using var my = new TaskHostTestHarness(withElapsed: true);
+
+        var ui1 = my.Factory.Create("1").TaskHostUI;
+        var ui2 = my.Factory.Create("2").TaskHostUI;
+
+        ui1.Header = "";
+        ui2.Header = "";
+
+        var s = new MockSequence();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             "a"             )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (              null           )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (              "\n"           )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             null            )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             "b"             )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                             )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (             "c"             )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                             )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,  Bg, "(...) "        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "d"       )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                    "\n"     )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,  Bg, "(...) "        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "e"       )).Verifiable();
 
         ui1.Write("a");
         ui1.Write(null);
@@ -148,24 +276,24 @@ public class TaskHostUITests
         var ui2 = my.Factory.Create("2").UI;
 
         var s = new MockSequence();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,      "a"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,       null      )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,       "\n"      )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,      null       )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,      "b"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                          )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[2]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,      "c"        )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                          )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(MoreFg,   Bg,      "(...) "   )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,            "d"  )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,             "\n")).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[2]: "         )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(MoreFg,   Bg,      "(...) "   )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(fg,       bg,            "e"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "a"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,       null      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,       "\n"      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,      null       )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "b"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "c"        )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,            "d"  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,             "\n")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: "         )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (fg,       bg,            "e"  )).Verifiable();
 
         ui1.Write(fg, bg, "a");
         ui1.Write(fg, bg, null);
@@ -187,16 +315,16 @@ public class TaskHostUITests
         var ui2 = my.Factory.Create("2").UI;
 
         var s = new MockSequence();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: " )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                  )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: " )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                   "b")).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                  )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[1]: " )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(                   "c")).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                  )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.Write(HeaderFg, Bg, "[2]: " )).Verifiable();
-        my.UI.InSequence(s).Setup(u => u.WriteLine(                  )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: " )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: " )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "b")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[1]: " )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (                   "c")).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.Write    (HeaderFg, Bg, "[2]: " )).Verifiable();
+        my.UI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
 
         ui1.WriteLine();
         ui1.Write    ("b");
