@@ -79,14 +79,9 @@ public class TaskHostUITests
     {
         using var my = new TaskHostTestHarness();
 
-        var ui    = my.Factory.Create().UI;
-        var rawUI = my.Mocks.Create<PSHostRawUserInterface>().Object;
+        var ui = my.Factory.Create().UI;
 
-        my.UI.Setup(u => u.RawUI)
-            .Returns(rawUI)
-            .Verifiable();
-
-        ui.RawUI.Should().BeSameAs(rawUI);
+        ui.RawUI.Should().BeOfType<TaskHostRawUI>();
     }
 
     [Test]

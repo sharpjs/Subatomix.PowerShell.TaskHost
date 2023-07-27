@@ -12,16 +12,19 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
-    private readonly ConsoleState        _console;      // Console state shared among tasks
-    private readonly int                 _taskId;       // Ordinal identifier of this task
-    private          bool                _taskBol;      // Whether this task should be at BOL
-    private          string              _header;       // Short display name for this task
-    private          string?             _headerCache;  // ... pre-rendered for display
+    private readonly PSHostUserInterface    _ui;            // Underlying UI implementation
+    private readonly PSHostRawUserInterface _rawUI;         // Raw UI wrapper
+    private readonly ConsoleState           _console;       // Console state shared among tasks
+    private readonly int                    _taskId;        // Ordinal identifier of this task
+    private          bool                   _taskBol;       // Whether this task should be at BOL
+    private          string                 _header;        // Short display name for this task
+    private          string?                _headerCache;   // ... pre-rendered for display
+
 
     internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
     {
         _ui      = ui;
+        _rawUI   = new TaskHostRawUI(ui.RawUI, console);
         _console = console;
         _taskId  = taskId;
         _taskBol = true;
@@ -46,7 +49,7 @@ public class TaskHostUI : PSHostUserInterface
 
     /// <inheritdoc/>
     public override PSHostRawUserInterface RawUI
-        => _ui.RawUI;
+        => _rawUI;
 
     /// <inheritdoc/>
     public override bool SupportsVirtualTerminal
