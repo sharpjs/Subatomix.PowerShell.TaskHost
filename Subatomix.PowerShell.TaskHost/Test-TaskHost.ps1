@@ -54,7 +54,7 @@ process {
     # Create the factory for per-task hosts.
     $Factory = [TaskHostFactory]::new($Host, <#withElapsed:#> $true)
 
-    # HACK: ForEach-Object -Parallel { $using:SomeScriptBlock } is unsupported.
+    # HACK: ForEach-Object -Parallel does not support $using:ScriptBlock.
     # Must stringify the script block here, then reconstitute it in each task.
     $ScriptText = $ScriptBlock.ToString()
 
