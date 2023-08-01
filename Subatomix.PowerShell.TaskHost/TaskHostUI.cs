@@ -284,6 +284,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         // a partial line that was interrupted by some other task, add a line
         // continuation indicator.
 
+        // Timestamp
         if (_console.Stopwatch is { Elapsed: var elapsed })
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkGray,
@@ -291,6 +292,7 @@ public sealed class TaskHostUI : PSHostUserInterface
                 string.Format(@"[+{0:hh\:mm\:ss}] ", elapsed)
             );
 
+        // Header
         if (_header.Length > 0)
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkBlue,
@@ -298,6 +300,7 @@ public sealed class TaskHostUI : PSHostUserInterface
                 FormatHeader()
             );
 
+        // Line continuation marker
         if (!_taskBol)
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkGray,
