@@ -12,14 +12,18 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public sealed class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
-    private readonly TaskHostUI?         _parent;       // Containing UI wrapper if nested
-    private readonly TaskHostRawUI       _rawUI;        // Child RawUI wrapper
-    private readonly ConsoleState        _console;      // Global console state
-    private readonly int                 _taskId;       // Numeric task identifier (sequential)
-    private          bool                _taskBol;      // Whether this task should be at BOL
-    private          string              _header;       // Short display name for this task
-    private          string?             _headerCache;  // ... pre-rendered for display
+    private readonly PSHostUserInterface _ui;       // Underlying UI implementation
+    private readonly TaskHostUI?         _parent;   // Containing UI wrapper if nested
+    private readonly TaskHostRawUI       _rawUI;    // Child RawUI wrapper
+    private readonly ConsoleState        _console;  // Global console state
+    private readonly int                 _taskId;   // Numeric task identifier (sequential)
+    private          bool                _taskBol;  // Whether this task should be at BOL
+    private          string              _header;   // Short display name for this task
+
+    // Caching
+    private string? _headerPrefixCache;     // Full header of parent
+    private string? _fullHeaderCache;       // Full header of this instance
+    private string? _formattedHeaderCache;  // Full header of this instance, with [] delimiters
 
     internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
     {
@@ -55,8 +59,9 @@ public sealed class TaskHostUI : PSHostUserInterface
         {
             lock (_console)
             {
-                _header      = value ?? throw new ArgumentNullException(nameof(value));
-                _headerCache = null;
+                _header = value ?? throw new ArgumentNullException(nameof(value));
+                _fullHeaderCache      = null;
+                _formattedHeaderCache = null;
             }
         }
     }
@@ -290,7 +295,7 @@ public sealed class TaskHostUI : PSHostUserInterface
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkBlue,
                 backgroundColor: ConsoleColor.Black,
-                _headerCache ??= string.Concat("[", _header, "]: ")
+                FormatHeader()
             );
 
         if (!_taskBol)
@@ -299,6 +304,33 @@ public sealed class TaskHostUI : PSHostUserInterface
                 backgroundColor: ConsoleColor.Black,
                 "(...) "
             );
+    }
+
+    private string GetFullHeader()
+    {
+        // TODO: Think about thread safety of this
+
+        if (_parent is not { } parent)
+            return _header;
+
+        var prefix = parent.GetFullHeader();
+
+        if (ReferenceEquals(_headerPrefixCache, prefix) && _fullHeaderCache is { } value)
+            return value;
+
+        _headerPrefixCache    = prefix;
+        _formattedHeaderCache = null;
+
+        return _fullHeaderCache = prefix.Length > 0
+            ? string.Concat(prefix, ".", _header)
+            : _header;
+    }
+
+    private string FormatHeader()
+    {
+        var header = GetFullHeader();
+
+        return _formattedHeaderCache ??= string.Concat("[", header, "]: ");
     }
 
     private void Update(bool eol)
