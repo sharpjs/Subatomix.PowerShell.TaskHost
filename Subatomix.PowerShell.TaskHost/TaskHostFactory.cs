@@ -69,6 +69,8 @@ public class TaskHostFactory
             throw new ArgumentNullException(nameof(host));
         if (host.UI is null)
             throw new ArgumentNullException(nameof(host) + ".UI");
+        if (host.UI.RawUI is null)
+            throw new ArgumentNullException(nameof(host) + ".UI.RawUI");
 
         _host    = host;
         _console = new() { Stopwatch = stopwatch };
