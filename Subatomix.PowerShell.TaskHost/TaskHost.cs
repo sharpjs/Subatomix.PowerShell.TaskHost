@@ -9,12 +9,15 @@ namespace Subatomix.PowerShell.TaskHost;
 ///   A wrapper for <see cref="PSHost"/> to improve the clarity of output from
 ///   parallel tasks.
 /// </summary>
-public sealed class TaskHost : PSHost
+public sealed class TaskHost : PSHost, IDisposable
 {
-    private readonly PSHost     _host;  // Underlying host implementation
-    private readonly TaskHostUI _ui;    // Wrapped UI implementation
-    private readonly Guid       _id;    // Host identifier (random)
-    private readonly string     _name;  // Host name
+    private static readonly AsyncLocal<TaskHost?> _current = new();
+
+    private readonly PSHost     _host;      // Underlying host implementation
+    private readonly TaskHost?  _parent;    // Containing host wrapper if nested
+    private readonly TaskHostUI _ui;        // Child UI wrapper
+    private readonly Guid       _id;        // Host identifier (random)
+    private readonly string     _name;      // Host name
 
     internal TaskHost(PSHost host, ConsoleState state, int taskId, string? header)
     {
@@ -22,6 +25,19 @@ public sealed class TaskHost : PSHost
         _ui   = new TaskHostUI(host.UI, state, taskId, header);
         _id   = Guid.NewGuid();
         _name = Invariant($"TaskHost<{host.Name}>#{taskId}");
+
+        _parent = Current;
+        Current = this;
+    }
+
+    /// <summary>
+    ///   Gets or sets the current task host, or <see langword="null"/>, or
+    ///   <see langword="null"/> if no task host is current.
+    /// </summary>
+    public static TaskHost? Current
+    {
+        get         => _current.Value;
+        private set => _current.Value = value;
     }
 
     /// <inheritdoc/>
@@ -82,4 +98,16 @@ public sealed class TaskHost : PSHost
     /// <inheritdoc/>
     public override void SetShouldExit(int exitCode)
         => _host.SetShouldExit(exitCode);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (Current != this)
+            throw new InvalidOperationException(
+                "Cannot Dispose the TaskHost object because a nested instance is current. " +
+                "Dispose the nested instance first."
+            );
+
+        Current = _parent;
+    }
 }
