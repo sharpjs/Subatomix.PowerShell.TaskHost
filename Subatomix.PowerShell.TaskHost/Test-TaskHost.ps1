@@ -84,7 +84,7 @@ process {
         try {
             $Shell.AddScript($ScriptBlock).Invoke($null, $Settings)
         }
-        catch {
+        finally {
             $Shell.Dispose()
         }
     }
