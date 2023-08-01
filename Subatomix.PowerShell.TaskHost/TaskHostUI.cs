@@ -12,24 +12,38 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public sealed class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface    _ui;            // Underlying UI implementation
-    private readonly PSHostRawUserInterface _rawUI;         // Raw UI wrapper
-    private readonly ConsoleState           _console;       // Console state shared among tasks
-    private readonly int                    _taskId;        // Ordinal identifier of this task
-    private          bool                   _taskBol;       // Whether this task should be at BOL
-    private          string                 _header;        // Short display name for this task
-    private          string?                _headerCache;   // ... pre-rendered for display
-
+    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
+    private readonly TaskHostUI?         _parent;       // Containing UI wrapper if nested
+    private readonly TaskHostRawUI       _rawUI;        // Child RawUI wrapper
+    private readonly ConsoleState        _console;      // Global console state
+    private readonly int                 _taskId;       // Numeric task identifier (sequential)
+    private          bool                _taskBol;      // Whether this task should be at BOL
+    private          string              _header;       // Short display name for this task
+    private          string?             _headerCache;  // ... pre-rendered for display
 
     internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
     {
-        _ui      = ui;
-        _rawUI   = new TaskHostRawUI(ui.RawUI, console);
+        if (ui is TaskHostUI parent)
+        {
+            _ui     = parent._ui;
+            _parent = parent;
+        }
+        else
+        {
+            _ui = ui;
+        }
+
+        _rawUI   = new TaskHostRawUI(_ui.RawUI, console);
         _console = console;
         _taskId  = taskId;
         _taskBol = true;
         _header  = header ?? Invariant($"Task {taskId}");
     }
+
+    /// <summary>
+    ///   Gets the global console state.
+    /// </summary>
+    internal ConsoleState Console => _console;
 
     /// <summary>
     ///   Gets or sets a header that appears before each line of output.

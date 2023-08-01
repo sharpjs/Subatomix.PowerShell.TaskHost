@@ -21,10 +21,20 @@ public sealed class TaskHost : PSHost, IDisposable
 
     internal TaskHost(PSHost host, ConsoleState state, int taskId, string? header)
     {
-        _host = host;
-        _ui   = new TaskHostUI(host.UI, state, taskId, header);
-        _id   = Guid.NewGuid();
-        _name = Invariant($"TaskHost<{host.Name}>#{taskId}");
+        if (host is TaskHost parent)
+        {
+            _host   = parent._host;
+            _parent = parent;
+            _name   = Invariant($"{parent._name}.{taskId}");
+        }
+        else
+        {
+            _host = host;
+            _name = Invariant($"TaskHost<{host.Name}>#{taskId}");
+        }
+
+        _ui = new TaskHostUI(host.UI, state, taskId, header);
+        _id = Guid.NewGuid();
 
         _parent = Current;
         Current = this;

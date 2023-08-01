@@ -72,8 +72,16 @@ public class TaskHostFactory
         if (host.UI.RawUI is null)
             throw new ArgumentNullException(nameof(host) + ".UI.RawUI");
 
-        _host    = host;
-        _console = new() { Stopwatch = stopwatch };
+        if (TaskHost.Current is { } parent)
+        {
+            _host    = parent;
+            _console = parent.TaskHostUI.Console;
+        }
+        else
+        {
+            _host    = host;
+            _console = new() { Stopwatch = stopwatch };
+        }
     }
 
     /// <summary>
