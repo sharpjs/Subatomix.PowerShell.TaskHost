@@ -86,6 +86,7 @@ process {
         }
         finally {
             $Shell.Dispose()
+            $TaskHost.Dispose()
         }
     }
 }
