@@ -9,7 +9,7 @@ namespace Subatomix.PowerShell.TaskHost;
 ///   A wrapper for <see cref="PSHost"/> to improve the clarity of output from
 ///   parallel tasks.
 /// </summary>
-public class TaskHost : PSHost
+public sealed class TaskHost : PSHost
 {
     private readonly PSHost     _host;  // Underlying host implementation
     private readonly TaskHostUI _ui;    // Wrapped UI implementation

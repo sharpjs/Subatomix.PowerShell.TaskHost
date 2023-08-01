@@ -3,7 +3,7 @@
 
 namespace Subatomix.PowerShell.TaskHost;
 
-internal class TaskHostRawUI : PSHostRawUserInterface
+internal sealed class TaskHostRawUI : PSHostRawUserInterface
 {
     private readonly PSHostRawUserInterface _ui;    // Underlying implementation
     private readonly object                 _lock;  // Synchronization object

@@ -10,7 +10,7 @@ namespace Subatomix.PowerShell.TaskHost;
 ///   A wrapper for <see cref="PSHostUserInterface"/> to improve the clarity of
 ///   output from parallel tasks.
 /// </summary>
-public class TaskHostUI : PSHostUserInterface
+public sealed class TaskHostUI : PSHostUserInterface
 {
     private readonly PSHostUserInterface    _ui;            // Underlying UI implementation
     private readonly PSHostRawUserInterface _rawUI;         // Raw UI wrapper
