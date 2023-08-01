@@ -11,7 +11,7 @@ Most lines should begin with one of these words:
 
 ## [1.1.0](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/compare/release/1.0.0..release/1.1.0)
 Future release.
-- Add opt-in elapsed-time indicator in line header.
+- Add an optional elapsed-time indicator to the line header.
 - Add merging of line headers when task hosts are nested.
 - Add color to line header.
 
