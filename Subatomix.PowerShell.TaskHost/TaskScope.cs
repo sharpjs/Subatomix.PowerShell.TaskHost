@@ -12,6 +12,7 @@ public readonly ref struct TaskScope
 {
     private readonly TaskInfo? _task;
     private readonly TaskInfo? _previous;
+    private readonly bool      _disposable;
 
     /// <summary>
     ///   Initializes a new <see cref="TaskScope"/> instance for the specified
@@ -28,11 +29,13 @@ public readonly ref struct TaskScope
     /// </remarks>
     public TaskScope(TaskInfo? task)
     {
+        _task = task;
         task?.Retain();
 
-        _task     = task;
         _previous = Current;
         Current   = task;
+
+        _disposable = true;
     }
 
     /// <summary>
@@ -60,10 +63,10 @@ public readonly ref struct TaskScope
     /// </remarks>
     public void Dispose()
     {
-        if (_task is not { } task)
+        if (!_disposable)
             return;
 
-        if (Current != task)
+        if (Current != _task)
             throw new InvalidOperationException(
                 "Cannot dispose the TaskScope object because a nested TaskScope has not been disposed. " +
                 "Dispose the nested instance first."
@@ -71,6 +74,6 @@ public readonly ref struct TaskScope
 
         Current = _previous;
 
-        task?.Release();
+        _task?.Release();
     }
 }
