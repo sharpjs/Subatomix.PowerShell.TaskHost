@@ -22,10 +22,4 @@ internal class ConsoleState
     ///   the console.  The default value is <c>0</c>.
     /// </summary>
     internal long LastTaskId { get; set; }
-
-    /// <summary>
-    ///   Gets or sets the optional stopwatch used to report elapsed time on
-    ///   the console.  The default value is <see langword="null"/>.
-    /// </summary>
-    internal Stopwatch? Stopwatch { get; set; }
 }

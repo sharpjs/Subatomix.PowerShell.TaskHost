@@ -13,23 +13,31 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public sealed class TaskHostUI : PSHostUserInterface
 {
-    private readonly PSHostUserInterface _ui;       // Underlying UI implementation
-    private readonly TaskHostRawUI       _rawUI;    // Child RawUI wrapper
-    private readonly ConsoleState        _console;  // Global console state and sync root
+    private readonly PSHostUserInterface _ui;           // Underlying UI implementation
+    private readonly TaskHostRawUI       _rawUI;        // Child RawUI wrapper
+    private readonly ConsoleState        _console;      // Global console state and sync root
+    private readonly Stopwatch?          _stopwatch;    // Total elapsed time
 
     internal TaskHostUI(PSHostUserInterface ui, Stopwatch? stopwatch)
     {
         if (ui is null)
             throw new ArgumentNullException(nameof(ui));
 
-        _ui    = ui;
-        _rawUI = new TaskHostRawUI(_ui.RawUI, _console = new() { Stopwatch = stopwatch });
+        _ui        = ui;
+        _rawUI     = new TaskHostRawUI(_ui.RawUI, _console = new());
+        _stopwatch = stopwatch;
     }
 
     /// <summary>
     ///   Gets the global console state.
     /// </summary>
     internal ConsoleState Console => _console;
+
+    /// <summary>
+    ///   Gets the stopwatch from which the instance reports elapsed time, or
+    ///   <see langword="null"/> if the instance does not report elapsed time.
+    /// </summary>
+    internal Stopwatch? Stopwatch { get; set; }
 
     /// <inheritdoc/>
     public override PSHostRawUserInterface RawUI
@@ -254,7 +262,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         // continuation indicator.
 
         // Timestamp
-        if (_console.Stopwatch is { Elapsed: var elapsed })
+        if (_stopwatch is { Elapsed: var elapsed })
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkGray,
                 backgroundColor: ConsoleColor.Black,

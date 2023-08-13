@@ -19,10 +19,15 @@ public sealed class TaskHost : PSHost
 
     /// <summary>
     ///   Initializes a new <see cref="TaskHost"/> instance wrapping the
-    ///   specified host.
+    ///   specified host, optionally reporting elapsed time from the specified
+    ///   stopwatch.
     /// </summary>
     /// <param name="host">
     ///   The host to wrap.
+    /// </param>
+    /// <param name="stopwatch">
+    ///   A stopwatch from which to report elapsed time, or
+    ///   <see langword="null"/> to not report elapsed time.
     /// </param>
     /// <exception cref="ArgumentNullException">
     ///   <paramref name="host"/>,
@@ -41,6 +46,23 @@ public sealed class TaskHost : PSHost
         _name = string.Concat("TaskHost<", host.Name, ">");
     }
 
+    /// <summary>
+    ///   Initializes a new <see cref="TaskHost"/> instance wrapping the
+    ///   specified host, optionally reporting elapsed time since construction.
+    /// </summary>
+    /// <param name="host">
+    ///   The host to wrap.
+    /// </param>
+    /// <param name="withElapsed">
+    ///   <see langword="true"/> to report elapsed time since construction;
+    ///   <see langword="false"/> otherwise.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="host"/>,
+    ///   its <see cref="PSHost.UI"/>, and/or
+    ///   its <see cref="PSHostUserInterface.RawUI"/>
+    ///   is <see langword="null"/>.
+    /// </exception>
     public TaskHost(PSHost host, bool withElapsed)
         : this(host, withElapsed ? Stopwatch.StartNew() : null) { }
 
