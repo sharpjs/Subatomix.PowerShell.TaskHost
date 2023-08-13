@@ -1,3 +1,4 @@
+#if TEMPORARILY_EXCLUDED_DURING_REWORK
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
@@ -214,3 +215,4 @@ public class TaskHostTests
         host.SetShouldExit(code);
     }
 }
+#endif

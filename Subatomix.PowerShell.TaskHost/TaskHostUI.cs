@@ -2,69 +2,34 @@
 // SPDX-License-Identifier: ISC
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Security;
 
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
 ///   A wrapper for <see cref="PSHostUserInterface"/> to improve the clarity of
-///   output from parallel tasks.
+///   output from long-running, potentially parallel tasks.
 /// </summary>
 public sealed class TaskHostUI : PSHostUserInterface
 {
     private readonly PSHostUserInterface _ui;       // Underlying UI implementation
-    private readonly TaskHostUI?         _parent;   // Containing UI wrapper if nested
     private readonly TaskHostRawUI       _rawUI;    // Child RawUI wrapper
-    private readonly ConsoleState        _console;  // Global console state
-    private readonly int                 _taskId;   // Numeric task identifier (sequential)
-    private          bool                _taskBol;  // Whether this task should be at BOL
-    private          string              _header;   // Short display name for this task
+    private readonly ConsoleState        _console;  // Global console state and sync root
 
-    // Caching
-    private string? _headerPrefixCache;     // Full header of parent
-    private string? _fullHeaderCache;       // Full header of this instance
-    private string? _formattedHeaderCache;  // Full header of this instance, with [] delimiters
-
-    internal TaskHostUI(PSHostUserInterface ui, ConsoleState console, int taskId, string? header)
+    internal TaskHostUI(PSHostUserInterface ui, Stopwatch? stopwatch)
     {
-        if (ui is TaskHostUI parent)
-        {
-            _ui     = parent._ui;
-            _parent = parent;
-        }
-        else
-        {
-            _ui = ui;
-        }
+        if (ui is null)
+            throw new ArgumentNullException(nameof(ui));
 
-        _rawUI   = new TaskHostRawUI(_ui.RawUI, console);
-        _console = console;
-        _taskId  = taskId;
-        _taskBol = true;
-        _header  = header ?? Invariant($"Task {taskId}");
+        _ui    = ui;
+        _rawUI = new TaskHostRawUI(_ui.RawUI, _console = new() { Stopwatch = stopwatch });
     }
 
     /// <summary>
     ///   Gets the global console state.
     /// </summary>
     internal ConsoleState Console => _console;
-
-    /// <summary>
-    ///   Gets or sets a header that appears before each line of output.
-    /// </summary>
-    public string Header
-    {
-        get => _header;
-        set
-        {
-            lock (_console)
-            {
-                _header = value ?? throw new ArgumentNullException(nameof(value));
-                _fullHeaderCache      = null;
-                _formattedHeaderCache = null;
-            }
-        }
-    }
 
     /// <inheritdoc/>
     public override PSHostRawUserInterface RawUI
@@ -79,9 +44,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.Write(text);
-            Update(EndsWithEol(text));
+            Update(task, EndsWithEol(text));
         }
     }
 
@@ -90,9 +55,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.Write(foreground, background, text);
-            Update(EndsWithEol(text));
+            Update(task, EndsWithEol(text));
         }
     }
 
@@ -101,9 +66,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteLine();
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -112,9 +77,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteLine(text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -123,9 +88,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteLine(foreground, background, text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -134,9 +99,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteDebugLine(text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -145,9 +110,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteVerboseLine(text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -156,9 +121,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteWarningLine(text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -167,9 +132,9 @@ public sealed class TaskHostUI : PSHostUserInterface
     {
         lock (_console)
         {
-            Prepare();
+            var task = Prepare();
             _ui.WriteErrorLine(text);
-            Update(eol: true);
+            Update(task, eol: true);
         }
     }
 
@@ -199,7 +164,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         lock (_console)
         {
             var result = _ui.ReadLine();
-            Update(eol: true);
+            Update(TaskInfo.Current, eol: true);
             return result;
         }
     }
@@ -210,7 +175,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         lock (_console)
         {
             var result = _ui.ReadLineAsSecureString();
-            Update(eol: true);
+            Update(TaskInfo.Current, eol: true);
             return result;
         }
     }
@@ -249,15 +214,17 @@ public sealed class TaskHostUI : PSHostUserInterface
                 caption, message, userName, targetName, allowedCredentialTypes, options);
     }
 
-    private void Prepare()
+    private TaskInfo? Prepare()
     {
         // Assume locked _console
+
+        var task = TaskInfo.Current;
 
         if (_console.IsAtBol)
         {
             // The console is at BOL.
         }
-        else if (_console.LastTaskId != _taskId)
+        else if (task is not null && _console.LastTaskId != task.Id)
         {
             // The console is not at BOL, because some other task wrote a
             // partial line to it.  End that line, so that this task's text
@@ -270,13 +237,15 @@ public sealed class TaskHostUI : PSHostUserInterface
             // The console is not at BOL, but this task was the last one to
             // write to it.  The console state is as the task expects. There is
             // no need to modify the console state or to emit any header.
-            return;
+            return task;
         }
 
-        PrepareAtBol();
+        PrepareAtBol(task);
+
+        return task;
     }
 
-    private void PrepareAtBol()
+    private void PrepareAtBol(TaskInfo? task)
     {
         // Assume locked _console
 
@@ -292,16 +261,19 @@ public sealed class TaskHostUI : PSHostUserInterface
                 string.Format(@"[+{0:hh\:mm\:ss}] ", elapsed)
             );
 
+        if (task is null)
+            return;
+
         // Header
-        if (_header.Length > 0)
+        if (task.FormattedName is { Length: > 0 } formattedName)
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkBlue,
                 backgroundColor: ConsoleColor.Black,
-                FormatHeader()
+                formattedName
             );
 
         // Line continuation marker
-        if (!_taskBol)
+        if (!task.IsAtBol)
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkGray,
                 backgroundColor: ConsoleColor.Black,
@@ -309,39 +281,15 @@ public sealed class TaskHostUI : PSHostUserInterface
             );
     }
 
-    private string GetFullHeader()
-    {
-        // TODO: Think about thread safety of this
-
-        if (_parent is not { } parent)
-            return _header;
-
-        var prefix = parent.GetFullHeader();
-
-        if (ReferenceEquals(_headerPrefixCache, prefix) && _fullHeaderCache is { } value)
-            return value;
-
-        _headerPrefixCache    = prefix;
-        _formattedHeaderCache = null;
-
-        return _fullHeaderCache = prefix.Length > 0
-            ? string.Concat(prefix, ".", _header)
-            : _header;
-    }
-
-    private string FormatHeader()
-    {
-        var header = GetFullHeader();
-
-        return _formattedHeaderCache ??= string.Concat("[", header, "]: ");
-    }
-
-    private void Update(bool eol)
+    private void Update(TaskInfo? task, bool eol)
     {
         // Assume locked _console
 
-        _console.IsAtBol    = _taskBol = eol;
-        _console.LastTaskId = _taskId;
+        if (task is null)
+            return;
+
+        _console.IsAtBol    = task.IsAtBol = eol;
+        _console.LastTaskId = task.Id;
     }
 
     private static bool EndsWithEol(string? value)

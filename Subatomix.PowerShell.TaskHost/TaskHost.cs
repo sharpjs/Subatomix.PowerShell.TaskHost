@@ -1,54 +1,48 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
 ///   A wrapper for <see cref="PSHost"/> to improve the clarity of output from
-///   parallel tasks.
+///   long-running, potentially parallel tasks.
 /// </summary>
-public sealed class TaskHost : PSHost, IDisposable
+public sealed class TaskHost : PSHost
 {
-    private static readonly AsyncLocal<TaskHost?> _current = new();
-
-    private readonly PSHost     _host;      // Underlying host implementation
-    private readonly TaskHost?  _parent;    // Containing host wrapper if nested
-    private readonly TaskHostUI _ui;        // Child UI wrapper
-    private readonly Guid       _id;        // Host identifier (random)
-    private readonly string     _name;      // Host name
-
-    internal TaskHost(PSHost host, ConsoleState state, int taskId, string? header)
-    {
-        if (host is TaskHost parent)
-        {
-            _host   = parent._host;
-            _parent = parent;
-            _name   = Invariant($"{parent._name}.{taskId}");
-        }
-        else
-        {
-            _host = host;
-            _name = Invariant($"TaskHost<{host.Name}>#{taskId}");
-        }
-
-        _ui = new TaskHostUI(host.UI, state, taskId, header);
-        _id = Guid.NewGuid();
-
-        _parent = Current;
-        Current = this;
-    }
+    private readonly PSHost     _host;  // Underlying host implementation
+    private readonly TaskHostUI _ui;    // Child UI wrapper
+    private readonly Guid       _id;    // Host identifier (random)
+    private readonly string     _name;  // Host name
 
     /// <summary>
-    ///   Gets or sets the current task host, or <see langword="null"/>, or
-    ///   <see langword="null"/> if no task host is current.
+    ///   Initializes a new <see cref="TaskHost"/> instance wrapping the
+    ///   specified host.
     /// </summary>
-    public static TaskHost? Current
+    /// <param name="host">
+    ///   The host to wrap.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="host"/>,
+    ///   its <see cref="PSHost.UI"/>, and/or
+    ///   its <see cref="PSHostUserInterface.RawUI"/>
+    ///   is <see langword="null"/>.
+    /// </exception>
+    public TaskHost(PSHost host, Stopwatch? stopwatch = null)
     {
-        get         => _current.Value;
-        private set => _current.Value = value;
+        if (host is null)
+            throw new ArgumentNullException(nameof(host));
+
+        _host = host;
+        _ui   = new TaskHostUI(host.UI, stopwatch);
+        _id   = Guid.NewGuid();
+        _name = string.Concat("TaskHost<", host.Name, ">");
     }
+
+    public TaskHost(PSHost host, bool withElapsed)
+        : this(host, withElapsed ? Stopwatch.StartNew() : null) { }
 
     /// <inheritdoc/>
     public override Guid InstanceId
@@ -60,7 +54,10 @@ public sealed class TaskHost : PSHost, IDisposable
 
     /// <inheritdoc/>
     public override Version Version
-        => TaskHostFactory.Version;
+        => _version;
+
+    private static readonly Version _version
+        = typeof(TaskHost).Assembly.GetName().Version!;
 
     /// <inheritdoc cref="UI" />
     public TaskHostUI TaskHostUI
@@ -108,16 +105,4 @@ public sealed class TaskHost : PSHost, IDisposable
     /// <inheritdoc/>
     public override void SetShouldExit(int exitCode)
         => _host.SetShouldExit(exitCode);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        if (Current != this)
-            throw new InvalidOperationException(
-                "Cannot Dispose the TaskHost object because a nested instance is current. " +
-                "Dispose the nested instance first."
-            );
-
-        Current = _parent;
-    }
 }

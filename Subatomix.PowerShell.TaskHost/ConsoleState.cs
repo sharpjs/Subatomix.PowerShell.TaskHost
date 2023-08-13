@@ -18,10 +18,10 @@ internal class ConsoleState
     internal bool IsAtBol { get; set; } = true;
 
     /// <summary>
-    ///   Gets or sets the id of the task that most recently wrote to the
-    ///   console.  The default value is <c>0</c>.
+    ///   Gets or sets the identifier of the task that most recently wrote to
+    ///   the console.  The default value is <c>0</c>.
     /// </summary>
-    internal int LastTaskId { get; set; }
+    internal long LastTaskId { get; set; }
 
     /// <summary>
     ///   Gets or sets the optional stopwatch used to report elapsed time on

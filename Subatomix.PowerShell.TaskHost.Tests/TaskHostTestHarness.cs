@@ -5,7 +5,7 @@ namespace Subatomix.PowerShell.TaskHost;
 
 internal class TaskHostTestHarness : TestHarnessBase
 {
-    public TaskHostFactory Factory { get; }
+    public TaskHost Host2 { get; }
 
     public Mock<PSHost>                 Host  { get; }
     public Mock<PSHostUserInterface>    UI    { get; }
@@ -22,6 +22,6 @@ internal class TaskHostTestHarness : TestHarnessBase
         Host.Setup(h => h.Name).Returns("MockHost");
         Host.Setup(h => h.UI  ).Returns(UI.Object);
 
-        Factory = new(Host.Object, withElapsed);
+        Host2 = new TaskHost(Host.Object);
     }
 }
