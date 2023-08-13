@@ -18,6 +18,23 @@ public sealed class TaskHostUI : PSHostUserInterface
     private readonly ConsoleState        _console;      // Global console state and sync root
     private readonly Stopwatch?          _stopwatch;    // Total elapsed time
 
+    /// <summary>
+    ///   Initializes a new <see cref="TaskHostUI"/> instance wrapping the
+    ///   specified UI and optionally reporting elapsed time from the specified
+    ///   stopwatch.
+    /// </summary>
+    /// <param name="ui">
+    ///   The UI to wrap.
+    /// </param>
+    /// <param name="stopwatch">
+    ///   A stopwatch from which to report elapsed time, or
+    ///   <see langword="null"/> to not report elapsed time.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="ui"/> and/or
+    ///   its <see cref="PSHostUserInterface.RawUI"/>
+    ///   is <see langword="null"/>.
+    /// </exception>
     internal TaskHostUI(PSHostUserInterface ui, Stopwatch? stopwatch)
     {
         if (ui is null)
