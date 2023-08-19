@@ -155,24 +155,20 @@ public sealed class TaskInfo
     internal bool IsAtBol { get; set; } = true;
 
     /// <summary>
-    ///   Begins a new task.
+    ///   gets the task with the specified unique identifier, or
+    ///   <see langword="null"/> if no such task exists.
     /// </summary>
-    /// <param name="name">
-    ///   The name of the task, or <see langword="null"/> to generate a default
-    ///   name.
+    /// <param name="id">
+    ///   The unique identifier of the task to get.
     /// </param>
     /// <returns>
-    ///   A disposable scope referencing the new task.  When all such scopes
-    ///   are disposed, the task becomes inaccessible via <see cref="All"/> and
-    ///   <see cref="Get"/>.
+    ///   The task whose <see cref="Id"/> is <paramref name="id"/>, or
+    ///   <see langword="null"/> if no such task exists.
     /// </returns>
-    /// <remarks>
-    ///   The new task becomes the <see cref="Current"/> instance and has a
-    ///   retain count of <c>1</c>.
-    /// </remarks>
-    public static TaskScope Begin(string? name = null)
+    public static TaskInfo? Get(long id)
     {
-        return new(new(name));
+        _all.TryGetValue(id, out var result);
+        return result;
     }
 
     /// <summary>
@@ -198,22 +194,5 @@ public sealed class TaskInfo
     {
         if (Interlocked.Decrement(ref _retainCount) <= 0)
             _all.TryRemove(_id, out _);
-    }
-
-    /// <summary>
-    ///   Gets the task with the specified unique identifier, or
-    ///   <see langword="null"/> if no such task exists.
-    /// </summary>
-    /// <param name="id">
-    ///   The unique identifier of the task to get.
-    /// </param>
-    /// <returns>
-    ///   The task whose <see cref="Id"/> is <paramref name="id"/>, or
-    ///   <see langword="null"/> if no such task scope exists.
-    /// </returns>
-    public static TaskInfo? Get(long id)
-    {
-        _all.TryGetValue(id, out var result);
-        return result;
     }
 }
