@@ -63,7 +63,11 @@ public sealed class TaskHostScope : IDisposable
             if (ExternalHost is not { } actualHost)
                 return;
 
-            // Attempt to replace with wrapper host
+            // Stop if actual host is already a wrapper
+            if (actualHost is TaskHost)
+                return;
+
+            // Attempt to replace actual host with wrapper host
             var wrapperHost = new TaskHost(actualHost, withElapsed);
             SetHostRef(wrapperHost);
 
