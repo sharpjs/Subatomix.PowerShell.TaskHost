@@ -6,8 +6,8 @@
   -->
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Description>A PowerShell PSHost wrapper to improve the clarity of output from parallel tasks.</Description>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
