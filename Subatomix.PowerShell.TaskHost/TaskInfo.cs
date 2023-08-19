@@ -57,7 +57,6 @@ public sealed class TaskInfo
         _parent = Current;
         _id     = Interlocked.Increment(ref _counter);
         _name   = name ?? Invariant($"Task {_id}");
-        IsAtBol = true;
 
         _all[_id] = this;
     }
@@ -147,8 +146,9 @@ public sealed class TaskInfo
 
     /// <summary>
     ///   Gets or sets whether the task's output is at the beginning of a line.
+    ///   The default value is <see langword="true"/>.
     /// </summary>
-    internal bool IsAtBol { get; set; }
+    internal bool IsAtBol { get; set; } = true;
 
     /// <summary>
     ///   Begins a new task.
