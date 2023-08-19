@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <None Update="*.ps1" CopyToOutputDirectory="PreserveNewest" />
+
+    <InternalsVisibleTo Include="Subatomix.PowerShell.TaskHost.Module"/>
   </ItemGroup>
 
 </Project>

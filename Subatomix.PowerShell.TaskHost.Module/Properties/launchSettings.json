@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PowerShell": {
+      "commandName": "Executable",
+      "executablePath": "pwsh",
+      "commandLineArgs": "-NoLogo -NoProfile -NoExit -Command \"Import-Module .\\TaskHost.psd1; Set-PSReadLineOption -EditMode Emacs; function prompt { 'PS> ' }\"",
+      "workingDirectory": "$(OutDir)"
+    }
+  }
+}
