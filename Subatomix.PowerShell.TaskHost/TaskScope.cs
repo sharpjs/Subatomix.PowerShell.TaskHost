@@ -72,8 +72,8 @@ public readonly ref struct TaskScope
 
         if (Current != _task)
             throw new InvalidOperationException(
-                "Cannot dispose the TaskScope object because a nested TaskScope has not been disposed. " +
-                "Dispose the nested instance first."
+                "Cannot dispose the TaskScope object because its task is not current. " +
+                "Dispose each scope exactly once, and dispose a nested scope before its parent."
             );
 
         Current = _previous;
