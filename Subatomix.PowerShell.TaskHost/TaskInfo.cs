@@ -62,7 +62,8 @@ public sealed class TaskInfo
     }
 
     /// <summary>
-    ///   Gets the current task.
+    ///   Gets the current task, or <see langword="null"/> if there is no
+    ///   current task.
     /// </summary>
     /// <remarks>
     ///   This property is local to the current thread or asynchronous flow.
@@ -80,8 +81,8 @@ public sealed class TaskInfo
     public static ReadOnlyDictionary<long, TaskInfo> All { get; } = new(_all);
 
     /// <summary>
-    ///   Gets the parent task, or <see langword="null"/> if the current task
-    ///   has no parent.
+    ///   Gets the parent task, or <see langword="null"/> if the task has no
+    ///   parent.
     /// </summary>
     public TaskInfo? Parent => _parent;
 
@@ -91,8 +92,11 @@ public sealed class TaskInfo
     public long Id => _id;
 
     /// <summary>
-    ///   Gets or sets the name of the task.
+    ///   Gets or sets the name of the task.  Cannot be <see langword="null"/>.
     /// </summary>
+    /// <exception cref="ArgumentNullException">
+    ///   Attempted to set the property to <see langword="null"/>.
+    /// </exception>
     public string Name
     {
         get => _name ?? string.Empty;
@@ -107,7 +111,7 @@ public sealed class TaskInfo
     /// <summary>
     ///   Gets the fully-qualified name of the task, consisting of the task's
     ///   <see cref="Name"/> prefixed by the fully-qualified name of the task's
-    ///   <see cref="Parent"/> parent.
+    ///   <see cref="Parent"/>.
     /// </summary>
     public string FullName
     {
