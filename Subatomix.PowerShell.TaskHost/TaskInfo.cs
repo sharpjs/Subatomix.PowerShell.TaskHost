@@ -31,11 +31,32 @@ public sealed class TaskInfo
     private string? _fullName;
     private string? _formattedName;
 
-    private TaskInfo(string? name)
+    /// <summary>
+    ///   Initializes a new <see cref="TaskInfo"/> instance and adds the
+    ///   instance to <see cref="All"/>.
+    /// </summary>
+    /// <param name="name">
+    ///   The name of the task, or <see langword="null"/> to generate a default
+    ///   name.
+    /// </param>
+    /// <remarks>
+    ///   <para>
+    ///     The <see cref="Current"/> task becomes the <see cref="Parent"/>
+    ///     of the new instance.
+    ///   </para>
+    ///   <para>
+    ///     The new instance has a retain count of <c>0</c> and does <b>not</b>
+    ///     become the <see cref="Current"/> instance.  The developer should
+    ///     increment the retain count by creating a <see cref="TaskScope"/>
+    ///     for the new instance (which sets <see cref="Current"/>) or by
+    ///     invoking <see cref="Retain"/> directly (which does not).
+    ///   </para>
+    /// </remarks>
+    internal TaskInfo(string? name = null)
     {
+        _parent = Current;
         _id     = Interlocked.Increment(ref _counter);
         _name   = name ?? Invariant($"Task {_id}");
-        _parent = Current;
         IsAtBol = true;
 
         _all[_id] = this;

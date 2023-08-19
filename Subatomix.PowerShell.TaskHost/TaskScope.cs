@@ -15,6 +15,30 @@ public readonly ref struct TaskScope
     private readonly bool      _disposable;
 
     /// <summary>
+    ///   Begins a new task.
+    /// </summary>
+    /// <param name="name">
+    ///   The name of the task, or <see langword="null"/> to generate a default
+    ///   name.
+    /// </param>
+    /// <returns>
+    ///   A scope referencing the new task.  When all scopes referencing a task
+    ///   are disposed, the task becomes inaccessible via <see cref="All"/> and
+    ///   <see cref="Get"/>.
+    /// </returns>
+    /// <remarks>
+    ///   This method sets <see cref="Current"/> to the new task.  When the
+    ///   returned scope is disposed, <see cref="Current"/> reverts to its
+    ///   previous value.  When all scopes referencing a task are disposed, the
+    ///   task becomes inaccessible via <see cref="All"/> and
+    ///   <see cref="Get"/>.
+    /// </remarks>
+    public static TaskScope Begin(string? name = null)
+    {
+        return new(new(name));
+    }
+
+    /// <summary>
     ///   Initializes a new <see cref="TaskScope"/> instance referencing the
     ///   specified task.
     /// </summary>
