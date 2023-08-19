@@ -23,6 +23,7 @@ public sealed class TaskInfo
     // Primary instance data
     private readonly TaskInfo? _parent;
     private readonly long      _id;
+    private readonly object    _lock = new();
     private          string?   _name;
     private          long      _retainCount;
 
@@ -99,13 +100,8 @@ public sealed class TaskInfo
     /// </exception>
     public string Name
     {
-        get => _name ?? string.Empty;
-        set
-        {
-            _name          = value ?? throw new ArgumentNullException(nameof(value));
-            _fullName      = null;
-            _formattedName = null;
-        }
+        get { lock (_lock) return GetNameLocked(); }
+        set { lock (_lock) SetNameLocked(value); }
     }
 
     /// <summary>
@@ -115,23 +111,7 @@ public sealed class TaskInfo
     /// </summary>
     public string FullName
     {
-        get
-        {
-            if (_parent is not { } parent)
-                return Name;
-
-            var parentFullName = parent.FullName;
-
-            if (ReferenceEquals(_parentFullName, parentFullName) && _fullName is { } value)
-                return value;
-
-            _parentFullName = parentFullName;
-            _formattedName = null;
-
-            return _fullName = parentFullName.Length > 0
-                ? string.Concat(parentFullName, "|", Name)
-                : Name;
-        }
+        get { lock (_lock) return GetFullNameLocked(); }
     }
 
     /// <summary>
@@ -140,12 +120,7 @@ public sealed class TaskInfo
     /// </summary>
     internal string FormattedName
     {
-        get
-        {
-            var fullName = FullName; // Do before next line; has caching side effects
-
-            return _formattedName ??= string.Concat("[", fullName, "]: ");
-        }
+        get { lock (_lock) return GetFormattedNameLocked(); }
     }
 
     /// <summary>
@@ -194,5 +169,42 @@ public sealed class TaskInfo
     {
         if (Interlocked.Decrement(ref _retainCount) <= 0)
             _all.TryRemove(_id, out _);
+    }
+
+    private void SetNameLocked(string value)
+    {
+        _name          = value ?? throw new ArgumentNullException(nameof(value));
+        _fullName      = null;
+        _formattedName = null;
+    }
+
+    private string GetNameLocked()
+    {
+        return _name ?? string.Empty;
+    }
+
+    private string GetFullNameLocked()
+    {
+        if (_parent is not { } parent)
+            return GetNameLocked();
+
+        var parentFullName = parent.GetFullNameLocked();
+
+        if (ReferenceEquals(_parentFullName, parentFullName) && _fullName is { } value)
+            return value;
+
+        _parentFullName = parentFullName;
+        _formattedName  = null;
+
+        return _fullName = parentFullName.Length > 0
+            ? string.Concat(parentFullName, "|", Name)
+            : Name;
+    }
+
+    private string GetFormattedNameLocked()
+    {
+        var fullName = GetFullNameLocked();
+
+        return _formattedName ??= string.Concat("[", fullName, "]: ");
     }
 }
