@@ -15,17 +15,18 @@ public readonly ref struct TaskScope
     private readonly bool      _disposable;
 
     /// <summary>
-    ///   Initializes a new <see cref="TaskScope"/> instance for the specified
-    ///   task.
+    ///   Initializes a new <see cref="TaskScope"/> instance referencing the
+    ///   specified task.
     /// </summary>
     /// <param name="task">
     ///   The task to reference.
     /// </param>
     /// <remarks>
-    ///   This constructor sets <paramref name="task"/> as the
-    ///   <see cref="Current"/> instance and increments the task's retain
-    ///   count, ensuring that the task remains accessible via
-    ///   <see cref="Task"/> <see cref="All"/> and <see cref="Get"/>.
+    ///   This constructor sets <see cref="Current"/> to the specified
+    ///   <paramref name="task"/>.  When the scope is disposed,
+    ///   <see cref="Current"/> reverts to its previous value.  When all scopes
+    ///   referencing the task are disposed, the task becomes inaccessible via
+    ///   <see cref="All"/> and <see cref="Get"/>.
     /// </remarks>
     public TaskScope(TaskInfo? task)
     {
@@ -39,28 +40,31 @@ public readonly ref struct TaskScope
     }
 
     /// <summary>
-    ///   Gets the task referenced by the scope.
+    ///   Gets the task referenced by the scope, or <see langword="null"/> for
+    ///   the default <see cref="TaskScope"/>.
     /// </summary>
     public TaskInfo? Task => _task;
 
     /// <summary>
     ///   Disposes the scope.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    ///   A nested scope has not been disposed.
-    /// </exception>
     /// <remarks>
     ///   <para>
-    ///     This method restores the previous value of <see cref="Current"/>
-    ///     and decrements the <see cref="Task"/>'s retain count.  When all
-    ///     scopes for the task have been disposed, the retain count reaches
-    ///     zero, and the task becomes inaccessible via <see cref="All"/> and
-    ///     <see cref="Get"/>.
+    ///     When invoked on the default <see cref="TaskScope"/> value, this
+    ///     method does nothing.  Otherwise, this method restores the previous
+    ///     value of <see cref="Current"/>.  When all scopes referencing a task
+    ///     are disposed, the task becomes inaccessible via <see cref="All"/>
+    ///     and <see cref="Get"/>.
     ///   </para>
     ///   <para>
     ///     A nested scope must be disposed before its containing scope.
+    ///     Scopes may be disposed only once.
     ///   </para>
     /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    ///   The scope has been disposed already, or a nested scope has not been
+    ///   disposed.
+    /// </exception>
     public void Dispose()
     {
         if (!_disposable)
