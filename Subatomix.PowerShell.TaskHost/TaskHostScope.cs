@@ -90,7 +90,7 @@ public sealed class TaskHostScope : IDisposable
     /// </remarks>
     public void Restore()
     {
-        if (_wrapperHost is not null)
+        if (!WasTaskHostActivated)
             return;
 
         try
@@ -119,7 +119,7 @@ public sealed class TaskHostScope : IDisposable
     /// </remarks>
     public void Dispose()
     {
-        if (_wrapperHost is not null)
+        if (!WasTaskHostActivated)
             return;
 
         try
