@@ -67,8 +67,12 @@ internal class TaskExtractingRedirector : Redirector
 
     private TaskScope Extract(ref object? obj)
     {
-        if (obj is not TaskOutput output)
-            return new(null);
+        var output
+            = (obj as PSObject)?.BaseObject as TaskOutput
+            ?? obj as TaskOutput;
+
+        if (output is null)
+            return default;
 
         obj = output.Object;
         return new(output.Task);
@@ -77,7 +81,7 @@ internal class TaskExtractingRedirector : Redirector
     private TaskScope Extract(ref string? message)
     {
         if (!TryExtract(ref message, out var task))
-            return new(null);
+            return default;
 
         return Wrap(task);
     }
@@ -85,10 +89,10 @@ internal class TaskExtractingRedirector : Redirector
     private TaskScope Extract(ref ErrorRecord record)
     {
         if (record is not { ErrorDetails: { Message: var message } details })
-            return new(null);
+            return default;
 
         if (!TryExtract(ref message, out var task))
-            return new(null);
+            return default;
 
         record.ErrorDetails = new(message)
         {
@@ -101,10 +105,10 @@ internal class TaskExtractingRedirector : Redirector
     private TaskScope Extract(ref InformationRecord record)
     {
         if (record is not { Source: var source })
-            return new(null);
+            return default;
 
         if (!TryExtract(ref source, out var task))
-            return new(null);
+            return default;
 
         record.Source = source;
 

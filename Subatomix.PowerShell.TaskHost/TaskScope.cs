@@ -28,8 +28,14 @@ public readonly ref struct TaskScope
     ///   referencing the task are disposed, the task becomes inaccessible via
     ///   <see cref="All"/> and <see cref="Get"/>.
     /// </remarks>
-    public TaskScope(TaskInfo? task)
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="task"/> is <see langword="null"/>.
+    /// </exception>
+    public TaskScope(TaskInfo task)
     {
+        if (task is null)
+            throw new ArgumentNullException(nameof(task));
+
         _task = task;
         task?.Retain();
 
