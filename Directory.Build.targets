@@ -27,7 +27,9 @@
   <ItemGroup>
     <Using Include="System.FormattableString" Static="true" />
     <Using Include="System.Management.Automation" />
+    <Using Include="System.Management.Automation" Alias="Sma" />
     <Using Include="System.Management.Automation.Host" />
+    <Using Include="System.Management.Automation.Runspaces" />
   </ItemGroup>
 
   <!-- Versioning -->
