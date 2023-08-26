@@ -5,9 +5,9 @@ namespace Subatomix.PowerShell.TaskHost;
 
 public abstract class RedirectorTestsBase : TestHarnessBase
 {
-    protected const string
-        L = "\x1", // left  delimiter of task id
-        R = "\x2"; // right delimiter of task id
+    public const char
+        L = '\x1', // left  delimiter of task id
+        R = '\x2'; // right delimiter of task id
 
     private   Sma.PowerShell              Shell   { get; }
     protected PSDataCollection<PSObject?> Output  { get; }

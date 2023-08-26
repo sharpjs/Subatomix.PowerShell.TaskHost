@@ -131,7 +131,7 @@ internal class TaskExtractingRedirector : Redirector
         }
     }
 
-    private static bool TryExtractId(ref string? s, out long id)
+    internal static bool TryExtractId(ref string? s, out long id)
     {
         const char
             StartDelimiter = '\x01', // SOH = Start of Heading

@@ -3,6 +3,8 @@
 
 namespace Subatomix.PowerShell.TaskHost;
 
+using static RedirectorTestsBase;
+
 public static class TaskExtractingRedirectorTests
 {
     [TestFixture]
@@ -85,6 +87,30 @@ public static class TaskExtractingRedirectorTests
             // The redirector should not extract any task or make one current
             TaskInfo.Current.Should().BeNull();
             Task.RetainCount.Should().Be(1);
+        }
+    }
+
+    [TestFixture]
+    public class Invariants
+    {
+        [Test]
+        [TestCase(null,   null,  false, 0)]
+        [TestCase("1",    "1",   false, 0)]
+        [TestCase("<1",   "<1",  false, 0)]
+        [TestCase("<>",   "<>",  false, 0)]
+        [TestCase("<x>",  "<x>", false, 0)]
+        [TestCase("<1>",  "",    true,  1)]
+        [TestCase("<1>x", "x",   true,  1)]
+        public void TryExtractId(string? text, string? expectedText, bool expectedOk, long expectedId)
+        {
+            text         = text?        .Replace('<', L).Replace('>', R);
+            expectedText = expectedText?.Replace('<', L).Replace('>', R);
+
+            var ok = TaskExtractingRedirector.TryExtractId(ref text, out var id);
+
+            ok  .Should().Be(expectedOk);
+            text.Should().Be(expectedText);
+            id  .Should().Be(expectedId);
         }
     }
 }
