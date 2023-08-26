@@ -124,6 +124,11 @@ public sealed class TaskInfo
     }
 
     /// <summary>
+    ///   Gets the retain count.
+    /// </summary>
+    internal long RetainCount => Volatile.Read(ref _retainCount);
+
+    /// <summary>
     ///   Gets or sets whether the task's output is at the beginning of a line.
     ///   The default value is <see langword="true"/>.
     /// </summary>

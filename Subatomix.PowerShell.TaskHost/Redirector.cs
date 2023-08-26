@@ -7,7 +7,7 @@ namespace Subatomix.PowerShell.TaskHost;
 ///   A utility to capture the output of a nested <see cref="PowerShell"/>
 ///   instance and to reissue the output from a particular cmdlet.
 /// </summary>
-internal abstract class Redirector
+internal class Redirector
 {
     private readonly PSDataCollection<PSObject?> _output;
     private readonly PSDataStreams               _streams;

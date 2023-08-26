@@ -73,6 +73,7 @@ internal class TaskInjectingRedirector : Redirector
 
     private object? Transform(object? obj)
     {
+        _task.Retain();
         return new TaskOutput(_task, obj);
     }
 

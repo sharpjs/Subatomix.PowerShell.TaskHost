@@ -67,23 +67,12 @@ internal class TaskExtractingRedirector : Redirector
 
     private TaskScope Extract(ref object? obj)
     {
-        var output
-            = (obj as PSObject)?.BaseObject as TaskOutput
-            ?? obj as TaskOutput;
-
-        if (output is null)
-            return default;
-
-        obj = output.Object;
-        return new(output.Task);
+        return TryExtract(ref obj, out var task) ? Wrap(task) : default;
     }
 
     private TaskScope Extract(ref string? message)
     {
-        if (!TryExtract(ref message, out var task))
-            return default;
-
-        return Wrap(task);
+        return TryExtract(ref message, out var task) ? Wrap(task) : default;
     }
 
     private TaskScope Extract(ref ErrorRecord record)
@@ -91,15 +80,14 @@ internal class TaskExtractingRedirector : Redirector
         if (record is not { ErrorDetails: { Message: var message } details })
             return default;
 
-        if (!TryExtract(ref message, out var task))
-            return default;
+        var found = TryExtract(ref message, out var task);
 
         record.ErrorDetails = new(message)
         {
             RecommendedAction = details.RecommendedAction
         };
 
-        return Wrap(task);
+        return found ? Wrap(task!) : default;
     }
 
     private TaskScope Extract(ref InformationRecord record)
@@ -107,18 +95,31 @@ internal class TaskExtractingRedirector : Redirector
         if (record is not { Source: var source })
             return default;
 
-        if (!TryExtract(ref source, out var task))
-            return default;
+        var found = TryExtract(ref source, out var task);
 
         record.Source = source;
 
-        return Wrap(task);
+        return found ? Wrap(task!) : default;
+    }
+
+    private bool TryExtract(ref object? obj, [MaybeNullWhen(false)] out TaskInfo task)
+    {
+        if (obj is PSObject { BaseObject: TaskOutput output })
+        {
+            obj  = output.Object;
+            task = output.Task;
+            return true;
+        }
+        else
+        {
+            task = null;
+            return false;
+        }
     }
 
     private static bool TryExtract(ref string? s, [MaybeNullWhen(false)] out TaskInfo task)
     {
-        if (TryExtractId(ref s, out var id)
-            && TaskInfo.Get(id) is { } found)
+        if (TryExtractId(ref s, out var id) && TaskInfo.Get(id) is { } found)
         {
             task = found;
             return true;

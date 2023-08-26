@@ -2,3 +2,4 @@
 // SPDX-License-Identifier: ISC
 
 [assembly: Parallelizable(ParallelScope.All)]
+[assembly: FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
