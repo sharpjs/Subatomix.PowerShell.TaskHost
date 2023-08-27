@@ -74,7 +74,7 @@ public sealed class TaskInfo
     internal TaskInfo()
     {
         _id   = -1;
-        _name = "";
+        _name = string.Empty;
     }
 
     /// <summary>
