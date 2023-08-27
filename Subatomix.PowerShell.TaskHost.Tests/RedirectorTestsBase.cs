@@ -31,9 +31,7 @@ public abstract class RedirectorTestsBase : TestHarnessBase
     protected override void CleanUp(bool managed)
     {
         TaskInfo.Current = null;
-
-        while (Task.RetainCount > 0)
-            Task.Release();
+        Task.ReleaseAll();
 
         Output.Dispose();
         Shell .Dispose();

@@ -160,8 +160,7 @@ public static class TaskInfoTests
         [TearDown]
         public void TearDown()
         {
-            while (Task.RetainCount > 0)
-                Task.Release();
+            Task.ReleaseAll();
         }
     }
 

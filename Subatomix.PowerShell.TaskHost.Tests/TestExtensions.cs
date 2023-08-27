@@ -11,4 +11,10 @@ internal static class TestExtensions
     {
         slot = constraint.Which;
     }
+
+    internal static void ReleaseAll(this TaskInfo task)
+    {
+        while (task.RetainCount > 0)
+            task.Release();
+    }
 }

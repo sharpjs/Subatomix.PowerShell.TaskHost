@@ -191,13 +191,6 @@ public sealed class TaskInfo
             _all.TryRemove(_id, out _);
     }
 
-    // For testing
-    internal void ReleaseAll()
-    {
-        Volatile.Write(ref _retainCount, 0);
-        _all.TryRemove(_id, out _);
-    }
-
     private void SetNameLocked(string value)
     {
         _name          = value ?? throw new ArgumentNullException(nameof(value));
