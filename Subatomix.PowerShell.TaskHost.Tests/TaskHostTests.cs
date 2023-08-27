@@ -6,15 +6,18 @@ using System.Globalization;
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
+[TestFixtureSource(nameof(Bools))]
 public class TaskHostTests : TestHarnessBase
 {
+    public static bool[] Bools = { false, true };
+
     private TaskHost                     Host       { get; }
 
     private Mock<PSHost>                 InnerHost  { get; }
     private Mock<PSHostUserInterface>    InnerUI    { get; }
     private Mock<PSHostRawUserInterface> InnerRawUI { get; }
 
-    public TaskHostTests()
+    public TaskHostTests(bool withElapsed)
     {
         InnerHost  = Mocks.Create<PSHost>();
         InnerUI    = Mocks.Create<PSHostUserInterface>();
@@ -25,7 +28,14 @@ public class TaskHostTests : TestHarnessBase
         InnerHost.Setup(h => h.Name).Returns("MockHost");
         InnerHost.Setup(h => h.UI  ).Returns(InnerUI.Object);
 
-        Host = new TaskHost(InnerHost.Object, withElapsed: true);
+        Host = new TaskHost(InnerHost.Object, withElapsed);
+    }
+
+    [Test]
+    public void Construct_NullHost()
+    {
+        Invoking(() => new TaskHost(null!, false))
+            .Should().Throw<ArgumentNullException>();
     }
 
     [Test]
