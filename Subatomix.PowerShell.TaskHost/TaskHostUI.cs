@@ -283,7 +283,8 @@ public sealed class TaskHostUI : PSHostUserInterface
             );
 
         // Header
-        if (task.FormattedName is { Length: > 0 } formattedName)
+        var formattedName = task.FormattedName;
+        if (formattedName.Length > 0)
             _ui.Write(
                 foregroundColor: ConsoleColor.DarkBlue,
                 backgroundColor: ConsoleColor.Black,
