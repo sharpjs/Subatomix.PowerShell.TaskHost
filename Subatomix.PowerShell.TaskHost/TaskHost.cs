@@ -81,10 +81,6 @@ public sealed class TaskHost : PSHost
     private static readonly Version _version
         = typeof(TaskHost).Assembly.GetName().Version!;
 
-    /// <inheritdoc cref="UI" />
-    public TaskHostUI TaskHostUI
-        => _ui;
-
     /// <inheritdoc/>
     public override PSHostUserInterface UI
         => _ui;
