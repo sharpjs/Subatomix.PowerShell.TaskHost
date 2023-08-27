@@ -1,4 +1,3 @@
-#if TEMPORARILY_EXCLUDED_DURING_REWORK
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
@@ -7,60 +6,50 @@ using System.Globalization;
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-public class TaskHostTests
+public class TaskHostTests : TestHarnessBase
 {
+    private TaskHost                     Host       { get; }
+
+    private Mock<PSHost>                 InnerHost  { get; }
+    private Mock<PSHostUserInterface>    InnerUI    { get; }
+    private Mock<PSHostRawUserInterface> InnerRawUI { get; }
+
+    public TaskHostTests()
+    {
+        InnerHost  = Mocks.Create<PSHost>();
+        InnerUI    = Mocks.Create<PSHostUserInterface>();
+        InnerRawUI = Mocks.Create<PSHostRawUserInterface>();
+
+        InnerUI.Setup(u => u.RawUI).Returns(InnerRawUI.Object);
+
+        InnerHost.Setup(h => h.Name).Returns("MockHost");
+        InnerHost.Setup(h => h.UI  ).Returns(InnerUI.Object);
+
+        Host = new TaskHost(InnerHost.Object, withElapsed: true);
+    }
+
     [Test]
     public void InstanceId_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host1 = my.Factory.Create();
-        var host2 = my.Factory.Create();
-
-        host1.InstanceId.Should().NotBeEmpty();
-        host2.InstanceId.Should().NotBeEmpty().And.NotBe(host1.InstanceId);
+        Host.InstanceId.Should().NotBeEmpty();
     }
 
     [Test]
     public void Name_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host1 = my.Factory.Create();
-        var host2 = my.Factory.Create();
-
-        host1.Name.Should().Be("TaskHost<MockHost>#1");
-        host2.Name.Should().Be("TaskHost<MockHost>#2");
+        Host.Name.Should().Be("TaskHost<MockHost>");
     }
 
     [Test]
     public void Version_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        host.Version.Should().BeSameAs(TaskHostFactory.Version);
-    }
-
-    [Test]
-    public void TaskHostUI_Get()
-    {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        host.TaskHostUI.Should().BeOfType<TaskHostUI>();
+        Host.Version.Should().Be(typeof(TaskHost).Assembly.GetName().Version);
     }
 
     [Test]
     public void UI_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        host.UI.Should().BeOfType<TaskHostUI>();
+        Host.UI.Should().BeOfType<TaskHostUI>();
     }
 
     [Test]
@@ -68,16 +57,12 @@ public class TaskHostTests
     [TestCase(false)]
     public void DebuggerEnabled_Get(bool value)
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .Setup(h => h.DebuggerEnabled)
             .Returns(value)
             .Verifiable();
 
-        host.DebuggerEnabled.Should().Be(value);
+        Host.DebuggerEnabled.Should().Be(value);
     }
 
     [Test]
@@ -85,134 +70,101 @@ public class TaskHostTests
     [TestCase(false)]
     public void DebuggerEnabled_Set(bool value)
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .SetupSet(h => h.DebuggerEnabled = value)
             .Verifiable();
 
-        host.DebuggerEnabled = value;
+        Host.DebuggerEnabled = value;
     }
 
     [Test]
     public void CurrentCulture_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host     = my.Factory.Create();
         var expected = CultureInfo.GetCultureInfo("kl-GL");
 
-        my.Host
+        InnerHost
             .Setup(h => h.CurrentCulture)
             .Returns(expected)
             .Verifiable();
 
-        host.CurrentCulture.Should().BeSameAs(expected);
+        Host.CurrentCulture.Should().BeSameAs(expected);
     }
 
     [Test]
     public void CurrentUICulture_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host     = my.Factory.Create();
         var expected = CultureInfo.GetCultureInfo("kl-GL");
 
-        my.Host
+        InnerHost
             .Setup(h => h.CurrentUICulture)
             .Returns(expected)
             .Verifiable();
 
-        host.CurrentUICulture.Should().BeSameAs(expected);
+        Host.CurrentUICulture.Should().BeSameAs(expected);
     }
 
     [Test]
     public void PrivateData_Get()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host     = my.Factory.Create();
         var expected = new PSObject("test private data");
 
-        my.Host
+        InnerHost
             .Setup(h => h.PrivateData)
             .Returns(expected)
             .Verifiable();
 
-        host.PrivateData.Should().BeSameAs(expected);
+        Host.PrivateData.Should().BeSameAs(expected);
     }
 
     [Test]
     public void EnterNestedPrompt()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .Setup(h => h.EnterNestedPrompt())
             .Verifiable();
 
-        host.EnterNestedPrompt();
+        Host.EnterNestedPrompt();
     }
 
     [Test]
     public void ExitNestedPrompt()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .Setup(h => h.ExitNestedPrompt())
             .Verifiable();
 
-        host.ExitNestedPrompt();
+        Host.ExitNestedPrompt();
     }
 
     [Test]
     public void NotifyBeginApplication()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .Setup(h => h.NotifyBeginApplication())
             .Verifiable();
 
-        host.NotifyBeginApplication();
+        Host.NotifyBeginApplication();
     }
 
     [Test]
     public void NotifyEndApplication()
     {
-        using var my = new TaskHostTestHarness();
-
-        var host = my.Factory.Create();
-
-        my.Host
+        InnerHost
             .Setup(h => h.NotifyEndApplication())
             .Verifiable();
 
-        host.NotifyEndApplication();
+        Host.NotifyEndApplication();
     }
 
     [Test]
     public void SetShouldExit()
     {
-        using var my = new TaskHostTestHarness();
+        var code = Random.Next();
 
-        var host = my.Factory.Create();
-        var code = my.Random.Next();
-
-        my.Host
+        InnerHost
             .Setup(h => h.SetShouldExit(code))
             .Verifiable();
 
-        host.SetShouldExit(code);
+        Host.SetShouldExit(code);
     }
 }
-#endif
