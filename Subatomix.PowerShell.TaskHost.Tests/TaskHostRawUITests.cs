@@ -7,13 +7,13 @@ namespace Subatomix.PowerShell.TaskHost;
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public class TaskHostRawUITests : TestHarnessBase
 {
-    private readonly Mock<PSHostRawUserInterface> _inner;
-    private readonly TaskHostRawUI                _rawUI;
+    private TaskHostRawUI                RawUI      { get; }
+    private Mock<PSHostRawUserInterface> InnerRawUI { get; }
 
     public TaskHostRawUITests()
     {
-        _inner = Mocks.Create<PSHostRawUserInterface>();
-        _rawUI = new TaskHostRawUI(_inner.Object, new());
+        InnerRawUI = Mocks.Create<PSHostRawUserInterface>();
+        RawUI      = new TaskHostRawUI(InnerRawUI.Object, new());
     }
 
     [Test]
@@ -26,7 +26,7 @@ public class TaskHostRawUITests : TestHarnessBase
     [Test]
     public void Construct_NullLockable()
     {
-        Invoking(() => new TaskHostRawUI(_inner.Object, null!))
+        Invoking(() => new TaskHostRawUI(InnerRawUI.Object, null!))
             .Should().Throw<ArgumentNullException>();
     }
 
@@ -35,9 +35,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = ConsoleColor.DarkBlue;
 
-        _inner.SetupGet(u => u.ForegroundColor).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.ForegroundColor).Returns(value).Verifiable();
 
-        _rawUI.ForegroundColor.Should().Be(value);
+        RawUI.ForegroundColor.Should().Be(value);
     }
 
     [Test]
@@ -45,9 +45,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = ConsoleColor.DarkBlue;
 
-        _inner.SetupSet(u => u.ForegroundColor = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.ForegroundColor = value).Verifiable();
 
-        _rawUI.ForegroundColor = value;
+        RawUI.ForegroundColor = value;
     }
 
     [Test]
@@ -55,9 +55,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = ConsoleColor.DarkBlue;
 
-        _inner.SetupGet(u => u.BackgroundColor).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.BackgroundColor).Returns(value).Verifiable();
 
-        _rawUI.BackgroundColor.Should().Be(value);
+        RawUI.BackgroundColor.Should().Be(value);
     }
 
     [Test]
@@ -65,9 +65,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = ConsoleColor.DarkBlue;
 
-        _inner.SetupSet(u => u.BackgroundColor = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.BackgroundColor = value).Verifiable();
 
-        _rawUI.BackgroundColor = value;
+        RawUI.BackgroundColor = value;
     }
 
     [Test]
@@ -75,9 +75,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Coordinates(1, 1);
 
-        _inner.SetupGet(u => u.CursorPosition).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.CursorPosition).Returns(value).Verifiable();
 
-        _rawUI.CursorPosition.Should().Be(value);
+        RawUI.CursorPosition.Should().Be(value);
     }
 
     [Test]
@@ -85,9 +85,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Coordinates(1, 1);
 
-        _inner.SetupSet(u => u.CursorPosition = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.CursorPosition = value).Verifiable();
 
-        _rawUI.CursorPosition = value;
+        RawUI.CursorPosition = value;
     }
 
     [Test]
@@ -95,9 +95,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = 3;
 
-        _inner.SetupGet(u => u.CursorSize).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.CursorSize).Returns(value).Verifiable();
 
-        _rawUI.CursorSize.Should().Be(value);
+        RawUI.CursorSize.Should().Be(value);
     }
 
     [Test]
@@ -105,9 +105,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = 3;
 
-        _inner.SetupSet(u => u.CursorSize = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.CursorSize = value).Verifiable();
 
-        _rawUI.CursorSize = value;
+        RawUI.CursorSize = value;
     }
 
     [Test]
@@ -115,9 +115,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Coordinates(1, 1);
 
-        _inner.SetupGet(u => u.WindowPosition).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.WindowPosition).Returns(value).Verifiable();
 
-        _rawUI.WindowPosition.Should().Be(value);
+        RawUI.WindowPosition.Should().Be(value);
     }
 
     [Test]
@@ -125,9 +125,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Coordinates(1, 1);
 
-        _inner.SetupSet(u => u.WindowPosition = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.WindowPosition = value).Verifiable();
 
-        _rawUI.WindowPosition = value;
+        RawUI.WindowPosition = value;
     }
 
     [Test]
@@ -135,9 +135,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(80, 25);
 
-        _inner.SetupGet(u => u.WindowSize).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.WindowSize).Returns(value).Verifiable();
 
-        _rawUI.WindowSize.Should().Be(value);
+        RawUI.WindowSize.Should().Be(value);
     }
 
     [Test]
@@ -145,9 +145,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(42, 42);
 
-        _inner.SetupSet(u => u.WindowSize = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.WindowSize = value).Verifiable();
 
-        _rawUI.WindowSize = value;
+        RawUI.WindowSize = value;
     }
 
     [Test]
@@ -155,9 +155,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(80, 25);
 
-        _inner.SetupGet(u => u.MaxWindowSize).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.MaxWindowSize).Returns(value).Verifiable();
 
-        _rawUI.MaxWindowSize.Should().Be(value);
+        RawUI.MaxWindowSize.Should().Be(value);
     }
 
     [Test]
@@ -165,9 +165,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(80, 25);
 
-        _inner.SetupGet(u => u.MaxPhysicalWindowSize).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.MaxPhysicalWindowSize).Returns(value).Verifiable();
 
-        _rawUI.MaxPhysicalWindowSize.Should().Be(value);
+        RawUI.MaxPhysicalWindowSize.Should().Be(value);
     }
 
     [Test]
@@ -175,9 +175,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = "a";
 
-        _inner.SetupGet(u => u.WindowTitle).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.WindowTitle).Returns(value).Verifiable();
 
-        _rawUI.WindowTitle.Should().Be(value);
+        RawUI.WindowTitle.Should().Be(value);
     }
 
     [Test]
@@ -185,9 +185,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = "a";
 
-        _inner.SetupSet(u => u.WindowTitle = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.WindowTitle = value).Verifiable();
 
-        _rawUI.WindowTitle = value;
+        RawUI.WindowTitle = value;
     }
 
     [Test]
@@ -195,9 +195,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(42, 42);
 
-        _inner.SetupGet(u => u.BufferSize).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.BufferSize).Returns(value).Verifiable();
 
-        _rawUI.BufferSize.Should().Be(value);
+        RawUI.BufferSize.Should().Be(value);
     }
 
     [Test]
@@ -205,9 +205,9 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = new Size(42, 42);
 
-        _inner.SetupSet(u => u.BufferSize = value).Verifiable();
+        InnerRawUI.SetupSet(u => u.BufferSize = value).Verifiable();
 
-        _rawUI.BufferSize = value;
+        RawUI.BufferSize = value;
     }
 
     [Test]
@@ -215,17 +215,17 @@ public class TaskHostRawUITests : TestHarnessBase
     {
         var value = true;
 
-        _inner.SetupGet(u => u.KeyAvailable).Returns(value).Verifiable();
+        InnerRawUI.SetupGet(u => u.KeyAvailable).Returns(value).Verifiable();
 
-        _rawUI.KeyAvailable.Should().Be(value);
+        RawUI.KeyAvailable.Should().Be(value);
     }
 
     [Test]
     public void FlushInputBuffer()
     {
-        _inner.Setup(u => u.FlushInputBuffer()).Verifiable();
+        InnerRawUI.Setup(u => u.FlushInputBuffer()).Verifiable();
 
-        _rawUI.FlushInputBuffer();
+        RawUI.FlushInputBuffer();
     }
 
     [Test]
@@ -234,9 +234,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var rectangle = new Rectangle(1, 2, 3, 4);
         var contents  = new BufferCell[2, 2];
 
-        _inner.Setup(u => u.GetBufferContents(rectangle)).Returns(contents).Verifiable();
+        InnerRawUI.Setup(u => u.GetBufferContents(rectangle)).Returns(contents).Verifiable();
 
-        _rawUI.GetBufferContents(rectangle).Should().BeSameAs(contents);
+        RawUI.GetBufferContents(rectangle).Should().BeSameAs(contents);
     }
 
     [Test]
@@ -245,9 +245,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var options = ReadKeyOptions.AllowCtrlC;
         var keyInfo = new KeyInfo(42, 'a', ControlKeyStates.ShiftPressed, keyDown: true);
 
-        _inner.Setup(u => u.ReadKey(options)).Returns(keyInfo).Verifiable();
+        InnerRawUI.Setup(u => u.ReadKey(options)).Returns(keyInfo).Verifiable();
 
-        _rawUI.ReadKey(options).Should().Be(keyInfo);
+        RawUI.ReadKey(options).Should().Be(keyInfo);
     }
 
     [Test]
@@ -256,9 +256,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var rectangle = new Rectangle(1, 2, 3, 4);
         var fill      = new BufferCell();
 
-        _inner.Setup(u => u.SetBufferContents(rectangle, fill)).Verifiable();
+        InnerRawUI.Setup(u => u.SetBufferContents(rectangle, fill)).Verifiable();
 
-        _rawUI.SetBufferContents(rectangle, fill);
+        RawUI.SetBufferContents(rectangle, fill);
     }
 
     [Test]
@@ -267,9 +267,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var origin   = new Coordinates(1, 2);
         var contents = new BufferCell[2, 2];
 
-        _inner.Setup(u => u.SetBufferContents(origin, contents)).Verifiable();
+        InnerRawUI.Setup(u => u.SetBufferContents(origin, contents)).Verifiable();
 
-        _rawUI.SetBufferContents(origin, contents);
+        RawUI.SetBufferContents(origin, contents);
     }
 
     [Test]
@@ -280,9 +280,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var clip        = new Rectangle(1, 1, 1, 1);
         var fill        = new BufferCell();
 
-        _inner.Setup(u => u.ScrollBufferContents(source, destination, clip, fill)).Verifiable();
+        InnerRawUI.Setup(u => u.ScrollBufferContents(source, destination, clip, fill)).Verifiable();
 
-        _rawUI.ScrollBufferContents(source, destination, clip, fill);
+        RawUI.ScrollBufferContents(source, destination, clip, fill);
     }
 
     [Test]
@@ -291,9 +291,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var source = 'a';
         var result = 1;
 
-        _inner.Setup(u => u.LengthInBufferCells(source)).Returns(result).Verifiable();
+        InnerRawUI.Setup(u => u.LengthInBufferCells(source)).Returns(result).Verifiable();
 
-        _rawUI.LengthInBufferCells(source).Should().Be(result);
+        RawUI.LengthInBufferCells(source).Should().Be(result);
     }
 
     [Test]
@@ -302,9 +302,9 @@ public class TaskHostRawUITests : TestHarnessBase
         var source = "a";
         var result = 1;
 
-        _inner.Setup(u => u.LengthInBufferCells(source)).Returns(result).Verifiable();
+        InnerRawUI.Setup(u => u.LengthInBufferCells(source)).Returns(result).Verifiable();
 
-        _rawUI.LengthInBufferCells(source).Should().Be(result);
+        RawUI.LengthInBufferCells(source).Should().Be(result);
     }
 
     [Test]
@@ -314,8 +314,8 @@ public class TaskHostRawUITests : TestHarnessBase
         var offset = 0;
         var result = 1;
 
-        _inner.Setup(u => u.LengthInBufferCells(source, offset)).Returns(result).Verifiable();
+        InnerRawUI.Setup(u => u.LengthInBufferCells(source, offset)).Returns(result).Verifiable();
 
-        _rawUI.LengthInBufferCells(source, offset).Should().Be(result);
+        RawUI.LengthInBufferCells(source, offset).Should().Be(result);
     }
 }
