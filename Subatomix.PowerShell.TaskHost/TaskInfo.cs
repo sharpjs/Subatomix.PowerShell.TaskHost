@@ -53,13 +53,29 @@ public sealed class TaskInfo
     ///     invoking <see cref="Retain"/> directly (which does not).
     ///   </para>
     /// </remarks>
-    internal TaskInfo(string? name = null)
+    internal TaskInfo(string? name)
     {
         _parent = Current;
         _id     = Interlocked.Increment(ref _counter);
         _name   = name ?? Invariant($"Task {_id}");
 
         _all[_id] = this;
+    }
+
+    /// <summary>
+    ///   Initializes a new <see cref="TaskInfo"/> instance as an unnamed
+    ///   virtual task.
+    /// </summary>
+    /// <remarks>
+    ///   <see cref="TaskHostUI"/> uses a task created by this constructor to
+    ///   simplify code paths and to store <see cref="IsAtBol"/> when
+    ///   <see cref="Current"/> is <see langword="null"/>.
+    /// </remarks>
+    internal TaskInfo()
+    {
+        _id            = -1;
+        _name          = "";
+        _formattedName = "";
     }
 
     /// <summary>

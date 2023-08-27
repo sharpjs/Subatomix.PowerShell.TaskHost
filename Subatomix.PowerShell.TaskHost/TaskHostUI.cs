@@ -17,6 +17,7 @@ public sealed class TaskHostUI : PSHostUserInterface
     private readonly TaskHostRawUI       _rawUI;        // Child RawUI wrapper
     private readonly ConsoleState        _console;      // Global console state and sync root
     private readonly Stopwatch?          _stopwatch;    // Total elapsed time
+    private readonly TaskInfo            _nullTask;     // Hidden task used when no current task
 
     /// <summary>
     ///   Initializes a new <see cref="TaskHostUI"/> instance wrapping the
@@ -43,6 +44,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         _ui        = ui;
         _rawUI     = new TaskHostRawUI(_ui.RawUI, _console = new());
         _stopwatch = stopwatch;
+        _nullTask  = new TaskInfo();
     }
 
     /// <summary>
@@ -189,7 +191,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         lock (_console)
         {
             var result = _ui.ReadLine();
-            Update(TaskInfo.Current, eol: true);
+            Update(GetCurrentTask(), eol: true);
             return result;
         }
     }
@@ -200,7 +202,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         lock (_console)
         {
             var result = _ui.ReadLineAsSecureString();
-            Update(TaskInfo.Current, eol: true);
+            Update(GetCurrentTask(), eol: true);
             return result;
         }
     }
@@ -239,17 +241,22 @@ public sealed class TaskHostUI : PSHostUserInterface
                 caption, message, userName, targetName, allowedCredentialTypes, options);
     }
 
-    private TaskInfo? Prepare()
+    private TaskInfo GetCurrentTask()
+    {
+        return TaskInfo.Current ?? _nullTask;
+    }
+
+    private TaskInfo Prepare()
     {
         // Assume locked _console
 
-        var task = TaskInfo.Current;
+        var task = GetCurrentTask();
 
         if (_console.IsAtBol)
         {
             // The console is at BOL.
         }
-        else if (task is not null && _console.LastTaskId != task.Id)
+        else if (_console.LastTaskId != task.Id)
         {
             // The console is not at BOL, because some other task wrote a
             // partial line to it.  End that line, so that this task's text
@@ -270,7 +277,7 @@ public sealed class TaskHostUI : PSHostUserInterface
         return task;
     }
 
-    private void PrepareAtBol(TaskInfo? task)
+    private void PrepareAtBol(TaskInfo task)
     {
         // Assume locked _console
 
@@ -285,9 +292,6 @@ public sealed class TaskHostUI : PSHostUserInterface
                 backgroundColor: ConsoleColor.Black,
                 string.Format(@"[+{0:hh\:mm\:ss}] ", elapsed)
             );
-
-        if (task is null)
-            return;
 
         // Header
         if (task.FormattedName is { Length: > 0 } formattedName)
@@ -306,12 +310,9 @@ public sealed class TaskHostUI : PSHostUserInterface
             );
     }
 
-    private void Update(TaskInfo? task, bool eol)
+    private void Update(TaskInfo task, bool eol)
     {
         // Assume locked _console
-
-        if (task is null)
-            return;
 
         _console.IsAtBol    = task.IsAtBol = eol;
         _console.LastTaskId = task.Id;
