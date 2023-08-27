@@ -250,7 +250,21 @@ public static class TaskInfoTests
         }
 
         [Test]
-        public void Name_Set_InParent()
+        public void Name_Set_Empty()
+        {
+            Name_Get();
+            FullName_Get();
+            FormattedName_Get();
+
+            Task.Name = "";
+
+            Task.Name         .Should().Be("")          .And.BeSameAs(Task.Name);
+            Task.FullName     .Should().Be("Parent")    .And.BeSameAs(Task.FullName);
+            Task.FormattedName.Should().Be("[Parent]: ").And.BeSameAs(Task.FormattedName);
+        }
+
+        [Test]
+        public void ParentName_Set()
         {
             Name_Get();
             FullName_Get();
@@ -261,6 +275,20 @@ public static class TaskInfoTests
             Task.Name         .Should().Be("Child")            .And.BeSameAs(Task.Name);
             Task.FullName     .Should().Be("Changed|Child")    .And.BeSameAs(Task.FullName);
             Task.FormattedName.Should().Be("[Changed|Child]: ").And.BeSameAs(Task.FormattedName);
+        }
+
+        [Test]
+        public void ParentName_Set_Empty()
+        {
+            Name_Get();
+            FullName_Get();
+            FormattedName_Get();
+
+            ParentTask!.Name = "";
+
+            Task.Name         .Should().Be("Child")    .And.BeSameAs(Task.Name);
+            Task.FullName     .Should().Be("Child")    .And.BeSameAs(Task.FullName);
+            Task.FormattedName.Should().Be("[Child]: ").And.BeSameAs(Task.FormattedName);
         }
     }
 }

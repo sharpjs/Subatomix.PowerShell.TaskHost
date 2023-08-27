@@ -223,9 +223,7 @@ public sealed class TaskInfo
         _parentFullName = parentFullName;
         _formattedName  = null;
 
-        return _fullName = parentFullName.Length > 0
-            ? string.Concat(parentFullName, "|", Name)
-            : Name;
+        return _fullName = Join(parentFullName, GetNameLocked());
     }
 
     private string GetFormattedNameLocked()
@@ -235,5 +233,12 @@ public sealed class TaskInfo
         return _formattedName ??= fullName.Length > 0
             ? string.Concat("[", fullName, "]: ")
             : string.Empty;
+    }
+
+    private string Join(string a, string b)
+    {
+        return a.Length == 0 ? b
+            :  b.Length == 0 ? a
+            :  string.Concat(a, "|", b);
     }
 }
