@@ -47,17 +47,6 @@ public sealed class TaskHostUI : PSHostUserInterface
         _nullTask  = new TaskInfo();
     }
 
-    /// <summary>
-    ///   Gets the global console state.
-    /// </summary>
-    internal ConsoleState Console => _console;
-
-    /// <summary>
-    ///   Gets the stopwatch from which the instance reports elapsed time, or
-    ///   <see langword="null"/> if the instance does not report elapsed time.
-    /// </summary>
-    internal Stopwatch? Stopwatch { get; set; }
-
     /// <inheritdoc/>
     public override PSHostRawUserInterface RawUI
         => _rawUI;
