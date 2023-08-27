@@ -56,62 +56,6 @@ public class TaskHostUITests : TestHarnessBase
             .Should().Throw<ArgumentNullException>();
     }
 
-#if TEMPORARILY_EXCLUDED_DURING_REWORK
-    [Test]
-    public void Header_Get_Default()
-    {
-        using var my = new TaskHostTestHarness();
-
-        my.Factory.Create().UI
-            .Should().BeOfType<TaskHostUI>().AssignTo(out var ui1);
-
-        my.Factory.Create().UI
-            .Should().BeOfType<TaskHostUI>().AssignTo(out var ui2);
-
-        ui1.Header.Should().Be("Task 1");
-        ui2.Header.Should().Be("Task 2");
-    }
-
-    [Test]
-    public void Header_Get_Explicit()
-    {
-        using var my = new TaskHostTestHarness();
-
-        var header = my.Random.GetString();
-
-        my.Factory.Create(header).UI
-            .Should().BeOfType<TaskHostUI>().AssignTo(out var UI);
-
-        UI.Header.Should().BeSameAs(header);
-    }
-
-    [Test]
-    public void Header_Set()
-    {
-        using var my = new TaskHostTestHarness();
-
-        var header = my.Random.GetString();
-
-        my.Factory.Create(header).UI
-            .Should().BeOfType<TaskHostUI>().AssignTo(out var UI);
-
-        UI.Header = header;
-        UI.Header.Should().BeSameAs(header);
-    }
-
-    [Test]
-    public void Header_Set_Null()
-    {
-        using var my = new TaskHostTestHarness();
-
-        my.Factory.Create().UI
-            .Should().BeOfType<TaskHostUI>().AssignTo(out var UI);
-
-        UI.Invoking(u => u.Header = null!)
-            .Should().ThrowExactly<ArgumentNullException>();
-    }
-#endif
-
     [Test]
     public void RawUI_Get()
     {
@@ -195,338 +139,416 @@ public class TaskHostUITests : TestHarnessBase
         UI.Write("f");
     }
 
-#if TEMPORARILY_EXCLUDED_DURING_REWORK
     [Test]
     public void Write_EmptyHeader()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").TaskHostUI;
-        var ui2 = my.Factory.Create("2").TaskHostUI;
-
-        ui1.Header = "";
-        ui2.Header = "";
+        Task1.Name = "";
+        Task2.Name = "";
 
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (            "a"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             null      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             "\n"      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             null      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (            "b"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                       )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (            "c"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                       )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg, Bg, "(...) "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                  "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "\n")).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg, Bg, "(...) "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                  "e"  )).Verifiable();
 
-        ui1.Write("a");
-        ui1.Write(null);
-        ui1.Write("\n");
-        ui1.Write(null);
-        ui1.Write("b");
-        ui2.Write("c");
-        ui1.Write("d");
-        ui1.Write("\n");
-        ui2.Write("e");
-    }
+        ExpectWriteElapsed     (s);
+        ExpectWrite            (s, "a");
+        ExpectWrite            (s, null);
+        ExpectWrite            (s, "\n");
 
-    [Test]
-    public void Write_EmptyHeader_WithElapsed()
-    {
-        using var my = new TaskHostTestHarness(withElapsed: true);
+        ExpectWriteElapsed     (s);
+        ExpectWrite            (s, null);
+        ExpectWrite            (s, "b");
+        ExpectWriteLine        (s);
 
-        var ui1 = my.Factory.Create("1").TaskHostUI;
-        var ui2 = my.Factory.Create("2").TaskHostUI;
+        ExpectWriteElapsed     (s);
+        ExpectWrite            (s, "c");
+        ExpectWriteLine        (s);
 
-        ui1.Header = "";
-        ui2.Header = "";
+        ExpectWriteElapsed     (s);
+        ExpectWriteEllipsis    (s);
+        ExpectWrite            (s, "d");
+        ExpectWrite            (s, "\n");
 
-        var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             "a"             )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (              null           )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (              "\n"           )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             null            )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             "b"             )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                             )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (             "c"             )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                             )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg,  Bg, "(...) "        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "d"       )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                    "\n"     )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (StampFg, Bg, IsRegex(StampRe))).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg,  Bg, "(...) "        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "e"       )).Verifiable();
+        ExpectWriteElapsed     (s);
+        ExpectWriteEllipsis    (s);
+        ExpectWrite            (s, "e");
+        ExpectWriteLine        (s);
 
-        ui1.Write("a");
-        ui1.Write(null);
-        ui1.Write("\n");
-        ui1.Write(null);
-        ui1.Write("b");
-        ui2.Write("c");
-        ui1.Write("d");
-        ui1.Write("\n");
-        ui2.Write("e");
+        using (new TaskScope(Task1))
+        {
+            UI.Write("a");
+            UI.Write(null);
+            UI.Write("\n");
+            UI.Write(null);
+            UI.Write("b");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.Write("c");
+        }
+
+        using (new TaskScope(Task1))
+        {
+            UI.Write("d");
+            UI.Write("\n");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.Write("e");
+        }
     }
 
     [Test]
     public void Write_WithColors([Random(1)] ConsoleColor fg, [Random(1)] ConsoleColor bg)
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "         )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "a"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,       null      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,       "\n"      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "         )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      null       )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "b"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[2]: "         )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "c"        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                              )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "         )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,            "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,             "\n")).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[2]: "         )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (MoreFg,   Bg,      "(...) "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,            "e"  )).Verifiable();
 
-        ui1.Write(fg, bg, "a");
-        ui1.Write(fg, bg, null);
-        ui1.Write(fg, bg, "\n");
-        ui1.Write(fg, bg, null);
-        ui1.Write(fg, bg, "b");
-        ui2.Write(fg, bg, "c");
-        ui1.Write(fg, bg, "d");
-        ui1.Write(fg, bg, "\n");
-        ui2.Write(fg, bg, "e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, fg, bg, "a");
+        ExpectWrite            (s, fg, bg, null);
+        ExpectWrite            (s, fg, bg, "\n");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, fg, bg, null);
+        ExpectWrite            (s, fg, bg, "b");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWrite            (s, fg, bg, "c");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteEllipsis    (s);
+        ExpectWrite            (s, fg, bg, "d");
+        ExpectWrite            (s, fg, bg, "\n");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteEllipsis    (s);
+        ExpectWrite            (s, fg, bg, "e");
+        ExpectWriteLine        (s);
+
+        using (new TaskScope(Task1))
+        {
+            UI.Write(fg, bg, "a");
+            UI.Write(fg, bg, null);
+            UI.Write(fg, bg, "\n");
+            UI.Write(fg, bg, null);
+            UI.Write(fg, bg, "b");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.Write(fg, bg, "c");
+        }
+
+        using (new TaskScope(Task1))
+        {
+            UI.Write(fg, bg, "d");
+            UI.Write(fg, bg, "\n");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.Write(fg, bg, "e");
+        }
     }
 
     [Test]
-    public void WriteLine_Empty()
+    public void WriteLine0()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: " )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: " )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "b")).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: " )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "c")).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[2]: " )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                      )).Verifiable();
 
-        ui1.WriteLine();
-        ui1.Write    ("b");
-        ui1.WriteLine();
-        ui1.Write    ("c");
-        ui2.WriteLine();
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "c");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteLine        (s);
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteLine();
+            UI.Write    ("b");
+            UI.WriteLine();
+            UI.Write    ("c");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteLine();
+        }
     }
 
     [Test]
-    public void WriteLine()
+    public void WriteLine1()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                   "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                    null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                    "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (                   "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                   "e"  )).Verifiable();
 
-        ui1.WriteLine("a");
-        ui1.WriteLine(null);
-        ui1.Write    ("b");
-        ui1.WriteLine("c");
-        ui1.Write    ("d");
-        ui2.WriteLine("e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteLine        (s, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteLine        (s, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteLine        (s, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteLine        (s, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteLine("a");
+            UI.WriteLine(null);
+            UI.Write    ("b");
+            UI.WriteLine("c");
+            UI.Write    ("d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteLine("e");
+        }
     }
 
     [Test]
-    public void WriteLine_WithColors([Random(1)] ConsoleColor fg, [Random(1)] ConsoleColor bg)
+    public void WriteLine1_WithColors([Random(1)] ConsoleColor fg, [Random(1)] ConsoleColor bg)
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(fg,       bg,      "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(fg,       bg,       null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(fg,       bg,       "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (fg,       bg,      "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write    (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(fg,       bg,      "e"  )).Verifiable();
 
-        ui1.WriteLine(fg, bg, "a");
-        ui1.WriteLine(fg, bg, null);
-        ui1.Write    (fg, bg, "b");
-        ui1.WriteLine(fg, bg, "c");
-        ui1.Write    (fg, bg, "d");
-        ui2.WriteLine(fg, bg, "e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteLine        (s, fg, bg, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteLine        (s, fg, bg, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, fg, bg, "b");
+        ExpectWriteLine        (s, fg, bg, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, fg, bg, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteLine        (s, fg, bg, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteLine(fg, bg, "a");
+            UI.WriteLine(fg, bg, null);
+            UI.Write    (fg, bg, "b");
+            UI.WriteLine(fg, bg, "c");
+            UI.Write    (fg, bg, "d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteLine(fg, bg, "e");
+        }
     }
 
     [Test]
     public void WriteDebugLine()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(                   "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(                    null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (                   "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(                    "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (                   "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine     (                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(                   "e"  )).Verifiable();
 
-        ui1.WriteDebugLine("a");
-        ui1.WriteDebugLine(null);
-        ui1.Write         ("b");
-        ui1.WriteDebugLine("c");
-        ui1.Write         ("d");
-        ui2.WriteDebugLine("e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteDebugLine   (s, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteDebugLine   (s, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteDebugLine   (s, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteDebugLine   (s, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteDebugLine("a");
+            UI.WriteDebugLine(null);
+            UI.Write         ("b");
+            UI.WriteDebugLine("c");
+            UI.Write         ("d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteDebugLine("e");
+        }
     }
 
     [Test]
     public void WriteVerboseLine()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteVerboseLine(                   "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteVerboseLine(                    null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (                   "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteVerboseLine(                    "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (                   "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine       (                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteVerboseLine(                   "e"  )).Verifiable();
 
-        ui1.WriteVerboseLine("a");
-        ui1.WriteVerboseLine(null);
-        ui1.Write           ("b");
-        ui1.WriteVerboseLine("c");
-        ui1.Write           ("d");
-        ui2.WriteVerboseLine("e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteVerboseLine (s, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteVerboseLine (s, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteVerboseLine (s, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteVerboseLine (s, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteVerboseLine("a");
+            UI.WriteVerboseLine(null);
+            UI.Write           ("b");
+            UI.WriteVerboseLine("c");
+            UI.Write           ("d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteVerboseLine("e");
+        }
     }
 
     [Test]
     public void WriteWarningLine()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(                   "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(                    null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (                   "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(                    "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (                   "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine       (                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write           (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(                   "e"  )).Verifiable();
 
-        ui1.WriteWarningLine("a");
-        ui1.WriteWarningLine(null);
-        ui1.Write           ("b");
-        ui1.WriteWarningLine("c");
-        ui1.Write           ("d");
-        ui2.WriteWarningLine("e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteWarningLine (s, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteWarningLine (s, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteWarningLine (s, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteWarningLine (s, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteWarningLine("a");
+            UI.WriteWarningLine(null);
+            UI.Write           ("b");
+            UI.WriteWarningLine("c");
+            UI.Write           ("d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteWarningLine("e");
+        }
     }
 
     [Test]
     public void WriteErrorLine()
     {
-        using var my = new TaskHostTestHarness();
-
-        var ui1 = my.Factory.Create("1").UI;
-        var ui2 = my.Factory.Create("2").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteErrorLine(                   "a"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteErrorLine(                    null)).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (                   "b"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteErrorLine(                    "c" )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[1]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (                   "d"  )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteLine     (                        )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write         (TaskFg, Bg, "[2]: "   )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.WriteErrorLine(                   "e"  )).Verifiable();
 
-        ui1.WriteErrorLine("a");
-        ui1.WriteErrorLine(null);
-        ui1.Write         ("b");
-        ui1.WriteErrorLine("c");
-        ui1.Write         ("d");
-        ui2.WriteErrorLine("e");
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteErrorLine   (s, "a");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWriteErrorLine   (s, null);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "b");
+        ExpectWriteErrorLine   (s, "c");
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "d");
+        ExpectWriteLine        (s);
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask2Header (s);
+        ExpectWriteErrorLine   (s, "e");
+
+        using (new TaskScope(Task1))
+        {
+            UI.WriteErrorLine("a");
+            UI.WriteErrorLine(null);
+            UI.Write         ("b");
+            UI.WriteErrorLine("c");
+            UI.Write         ("d");
+        }
+
+        using (new TaskScope(Task2))
+        {
+            UI.WriteErrorLine("e");
+        }
     }
 
     [Test]
     public void WriteInformation()
     {
-        using var my = new TaskHostTestHarness();
-
-        var UI     = my.Factory.Create("1").UI;
         var record = new InformationRecord("a", "b");
 
         InnerUI
@@ -539,9 +561,6 @@ public class TaskHostUITests : TestHarnessBase
     [Test]
     public void WriteProgress()
     {
-        using var my = new TaskHostTestHarness();
-
-        var UI     = my.Factory.Create("1").UI;
         var record = new ProgressRecord(42, "a", "b");
 
         InnerUI
@@ -554,18 +573,24 @@ public class TaskHostUITests : TestHarnessBase
     [Test]
     public void ReadLine()
     {
-        using var my = new TaskHostTestHarness();
-
-        var UI   = my.Factory.Create("1").UI;
         var text = "input";
 
         var s = new MockSequence();
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "before");
 
-        InnerUI.InSequence(s).Setup(u => u.Write(TaskFg, Bg, "[1]: "      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(                   "before")).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.ReadLine()).Returns(text)          .Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(TaskFg, Bg, "[1]: "      )).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(                   "after" )).Verifiable();
+        InnerUI
+            .InSequence(s)
+            .Setup(u => u.ReadLine())
+            .Returns(text)
+            .Verifiable();
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "after");
+
+        using var scope = new TaskScope(Task1);
 
         UI.Write("before");
         var result = UI.ReadLine();
@@ -577,20 +602,28 @@ public class TaskHostUITests : TestHarnessBase
     [Test]
     public void ReadLineAsSecureString()
     {
-        using var my   = new TaskHostTestHarness();
         using var text = new SecureString();
 
         text.AppendChar('x');
         text.MakeReadOnly();
 
-        var UI   = my.Factory.Create("1").UI;
-
         var s = new MockSequence();
-        InnerUI.InSequence(s).Setup(u => u.Write(TaskFg, Bg, "[1]: "      ))    .Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(                   "before"))    .Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.ReadLineAsSecureString()).Returns(text).Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(TaskFg, Bg, "[1]: "      ))    .Verifiable();
-        InnerUI.InSequence(s).Setup(u => u.Write(                   "after" ))    .Verifiable();
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "before");
+
+        InnerUI
+            .InSequence(s)
+            .Setup(u => u.ReadLineAsSecureString())
+            .Returns(text)
+            .Verifiable();
+
+        ExpectWriteElapsed     (s);
+        ExpectWriteTask1Header (s);
+        ExpectWrite            (s, "after");
+
+        using var scope = new TaskScope(Task1);
 
         UI.Write("before");
         var result = UI.ReadLineAsSecureString();
@@ -598,7 +631,6 @@ public class TaskHostUITests : TestHarnessBase
 
         result.Should().BeSameAs(text);
     }
-#endif
 
     [Test]
     public void Prompt()
@@ -707,9 +739,9 @@ public class TaskHostUITests : TestHarnessBase
         InnerUI.InSequence(s).Setup(u => u.Write(text)).Verifiable();
     }
 
-    private void ExpectWriteLine(MockSequence s, string? text)
+    private void ExpectWrite(MockSequence s, ConsoleColor fg, ConsoleColor bg, string? text)
     {
-        InnerUI.InSequence(s).Setup(u => u.WriteLine(text)).Verifiable();
+        InnerUI.InSequence(s).Setup(u => u.Write(fg, bg, text)).Verifiable();
     }
 
     private void ExpectWriteLine(MockSequence s)
@@ -717,9 +749,19 @@ public class TaskHostUITests : TestHarnessBase
         InnerUI.InSequence(s).Setup(u => u.WriteLine()).Verifiable();
     }
 
-    private void ExpectWriteWarningLine(MockSequence s, string? text)
+    private void ExpectWriteLine(MockSequence s, string? text)
     {
-        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(text)).Verifiable();
+        InnerUI.InSequence(s).Setup(u => u.WriteLine(text)).Verifiable();
+    }
+
+    private void ExpectWriteLine(MockSequence s, ConsoleColor fg, ConsoleColor bg, string? text)
+    {
+        InnerUI.InSequence(s).Setup(u => u.WriteLine(fg, bg, text)).Verifiable();
+    }
+
+    private void ExpectWriteDebugLine(MockSequence s, string? text)
+    {
+        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(text)).Verifiable();
     }
 
     private void ExpectWriteVerboseLine(MockSequence s, string? text)
@@ -727,8 +769,13 @@ public class TaskHostUITests : TestHarnessBase
         InnerUI.InSequence(s).Setup(u => u.WriteVerboseLine(text)).Verifiable();
     }
 
-    private void ExpectWriteDebugLine(MockSequence s, string? text)
+    private void ExpectWriteWarningLine(MockSequence s, string? text)
     {
-        InnerUI.InSequence(s).Setup(u => u.WriteDebugLine(text)).Verifiable();
+        InnerUI.InSequence(s).Setup(u => u.WriteWarningLine(text)).Verifiable();
+    }
+
+    private void ExpectWriteErrorLine(MockSequence s, string? text)
+    {
+        InnerUI.InSequence(s).Setup(u => u.WriteErrorLine(text)).Verifiable();
     }
 }

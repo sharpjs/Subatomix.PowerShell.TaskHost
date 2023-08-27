@@ -73,9 +73,8 @@ public sealed class TaskInfo
     /// </remarks>
     internal TaskInfo()
     {
-        _id            = -1;
-        _name          = "";
-        _formattedName = "";
+        _id   = -1;
+        _name = "";
     }
 
     /// <summary>
@@ -226,6 +225,8 @@ public sealed class TaskInfo
     {
         var fullName = GetFullNameLocked();
 
-        return _formattedName ??= string.Concat("[", fullName, "]: ");
+        return _formattedName ??= fullName.Length > 0
+            ? string.Concat("[", fullName, "]: ")
+            : string.Empty;
     }
 }
