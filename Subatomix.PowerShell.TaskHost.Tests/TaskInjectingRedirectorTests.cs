@@ -21,7 +21,7 @@ public class TaskInjectingRedirectorTests : RedirectorTestsBase
         return (input, output);
     }
 
-    protected override (string input, string output) SetUpTextFlow()
+    protected override (string? input, string? output) SetUpTextFlow()
     {
         var input  =                 "text";
         var output = $"{L}{Task.Id}{R}text";
@@ -29,11 +29,20 @@ public class TaskInjectingRedirectorTests : RedirectorTestsBase
         return (input, output);
     }
 
+    protected override void AssertStateInWrite()
+    {
+        // The injecting redirector should encode the current task into the
+        // stream content and increment the task's retain count before invoking
+        // the underlying write
+        TaskInfo.Current.Should().BeSameAs(Task);
+        Task.RetainCount.Should().Be(2);
+    }
+
     protected override void Verify()
     {
-        // The redirector should encode the task id into the stream content and
-        // increment the task's retain count
-        Task.RetainCount.Should().Be(2);
+        // The injecting redirector should not modify the current task or its
+        // retain count after invoking the underlying write
+        AssertStateInWrite();
 
         base.Verify();
     }

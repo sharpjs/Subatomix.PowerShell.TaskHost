@@ -63,23 +63,18 @@ public abstract class RedirectorTestsBase : TestHarnessBase
     [Test]
     public void WriteError()
     {
-        var (input, output) = SetUpTextFlow();
-
-        var record = new ErrorRecord(new(), "id", ErrorCategory.InvalidOperation, "target")
-        {
-            ErrorDetails = new(input)
-        };
+        var (input, output) = SetUpErrorRecordFlow();
 
         Runtime
-            .Setup(r => r.WriteError(It.IsNotNull<ErrorRecord>()))
+            .Setup(r => r.WriteError(It.IsAny<ErrorRecord>()))
             .Callback(Assert)
             .Verifiable();
 
-        Streams.Error.Add(record);
+        Streams.Error.Add(input);
 
-        void Assert(ErrorRecord r)
+        void Assert(ErrorRecord record)
         {
-            r.ErrorDetails.Message.Should().Be(output);
+            record.Should().BeEquivalentTo(output);
             AssertStateInWrite();
         }
     }
@@ -144,20 +139,18 @@ public abstract class RedirectorTestsBase : TestHarnessBase
     [Test]
     public void WriteInformation()
     {
-        var (input, output) = SetUpTextFlow();
-
-        var record = new InformationRecord("messageData", input);
+        var (input, output) = SetUpInformationRecordFlow();
 
         Runtime
-            .Setup(r => r.WriteInformation(It.IsNotNull<InformationRecord>()))
+            .Setup(r => r.WriteInformation(It.IsAny<InformationRecord>()))
             .Callback(Assert)
             .Verifiable();
 
-        Streams.Information.Add(record);
+        Streams.Information.Add(input);
 
         void Assert(InformationRecord record)
         {
-            record.Source.Should().Be(output);
+            record.Should().BeEquivalentTo(output, _ => _.Excluding(x => x!.TimeGenerated));
             AssertStateInWrite();
         }
     }
@@ -168,12 +161,44 @@ public abstract class RedirectorTestsBase : TestHarnessBase
         return (obj, obj);
     }
 
-    protected virtual (string input, string output) SetUpTextFlow()
+    protected virtual (ErrorRecord? input, ErrorRecord? output) SetUpErrorRecordFlow()
+    {
+        var (inputText, outputText) = SetUpTextFlow();
+
+        var input = new ErrorRecord(new(), "id", ErrorCategory.InvalidOperation, "target")
+        {
+            ErrorDetails = new(inputText)
+        };
+
+        var output = new ErrorRecord(new(), "id", ErrorCategory.InvalidOperation, "target")
+        {
+            ErrorDetails = new(outputText)
+        };
+
+        return (input, output);
+    }
+
+    protected virtual (InformationRecord? input, InformationRecord? output) SetUpInformationRecordFlow()
+    {
+        var (inputText, outputText) = SetUpTextFlow();
+
+        var input  = new InformationRecord("messageData", inputText);
+        var output = new InformationRecord("messageData", outputText);
+
+        return (input, output);
+    }
+
+    protected virtual (string? input, string? output) SetUpTextFlow()
     {
         return ("text", "text");
     }
 
-    protected virtual void AssertStateInWrite() { }
+    protected virtual void AssertStateInWrite()
+    {
+        // The base redirector should not change task-related state
+        TaskInfo.Current.Should().BeNull();
+        Task.RetainCount.Should().Be(1);
+    }
 
     private class TestCmdlet : Cmdlet { }
 }

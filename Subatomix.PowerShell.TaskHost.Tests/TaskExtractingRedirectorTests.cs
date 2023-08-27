@@ -27,7 +27,7 @@ public static class TaskExtractingRedirectorTests
             return (input, output);
         }
 
-        protected override (string input, string output) SetUpTextFlow()
+        protected override (string? input, string? output) SetUpTextFlow()
         {
             var input  = $"{L}{Task.Id}{R}text";
             var output =                 "text";
@@ -37,16 +37,48 @@ public static class TaskExtractingRedirectorTests
 
         protected override void AssertStateInWrite()
         {
-            // The redirector should extract the task and make it current
+            // The extracting redirector should decode the task from the stream
+            // content and make it current before invoking the underlying write
             TaskInfo.Current.Should().BeSameAs(Task);
             Task.RetainCount.Should().Be(2);
         }
 
         protected override void Verify()
         {
-            // The redirector should restore the previous current task
+            // The extracting redirector should decrement the current task's
+            // retain count and restore the previous current task after
+            // invoking the underlying write
             TaskInfo.Current.Should().BeNull();
             Task.RetainCount.Should().Be(1);
+        }
+    }
+
+    [TestFixture]
+    public class Nulls : RedirectorTestsBase
+    {
+        public Nulls()
+        {
+            new TaskExtractingRedirector(Output, Streams, Cmdlet);
+        }
+
+        protected override (PSObject? input, object? output) SetUpObjectFlow()
+        {
+            return (null, null);
+        }
+
+        protected override (ErrorRecord? input, ErrorRecord? output) SetUpErrorRecordFlow()
+        {
+            return (null, null);
+        }
+
+        protected override (InformationRecord? input, InformationRecord? output) SetUpInformationRecordFlow()
+        {
+            return (null, null);
+        }
+
+        protected override (string? input, string? output) SetUpTextFlow()
+        {
+            return (null, null);
         }
     }
 
@@ -56,13 +88,6 @@ public static class TaskExtractingRedirectorTests
         public NoTaskId()
         {
             new TaskExtractingRedirector(Output, Streams, Cmdlet);
-        }
-
-        protected override void AssertStateInWrite()
-        {
-            // The redirector should not extract any task or make one current
-            TaskInfo.Current.Should().BeNull();
-            Task.RetainCount.Should().Be(1);
         }
     }
 
@@ -74,19 +99,12 @@ public static class TaskExtractingRedirectorTests
             new TaskExtractingRedirector(Output, Streams, Cmdlet);
         }
 
-        protected override (string input, string output) SetUpTextFlow()
+        protected override (string? input, string? output) SetUpTextFlow()
         {
             var input  = $"{L}999999999999999999{R}text";
             var output =                          "text";
 
             return (input, output);
-        }
-
-        protected override void AssertStateInWrite()
-        {
-            // The redirector should not extract any task or make one current
-            TaskInfo.Current.Should().BeNull();
-            Task.RetainCount.Should().Be(1);
         }
     }
 
