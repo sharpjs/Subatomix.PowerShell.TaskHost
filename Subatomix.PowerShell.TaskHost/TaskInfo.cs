@@ -24,7 +24,7 @@ public sealed class TaskInfo
     private readonly TaskInfo? _parent;
     private readonly long      _id;
     private readonly object    _lock = new();
-    private          string?   _name;
+    private          string    _name;
     private          long      _retainCount;
 
     // Caches
@@ -200,7 +200,7 @@ public sealed class TaskInfo
 
     private string GetNameLocked()
     {
-        return _name ?? string.Empty;
+        return _name;
     }
 
     private string GetFullNameLocked()
