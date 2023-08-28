@@ -108,6 +108,7 @@ public readonly ref struct TaskScope
 
         Current = _previous;
 
-        _task?.Release();
+        // Nulls prevented in constructor
+        _task!.Release();
     }
 }
