@@ -71,6 +71,10 @@ public sealed class TaskHostScope : IDisposable
             var wrapperHost = new TaskHost(actualHost, withElapsed);
             SetHostRef(wrapperHost);
 
+            // Verify actual host was replaced
+            if (!ReferenceEquals(ExternalHost, wrapperHost))
+                return;
+
             // Internal API worked
             _wrapperHost = wrapperHost;
             _actualHost  = actualHost;
