@@ -22,4 +22,8 @@
     <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="*.psm1" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
 </Project>

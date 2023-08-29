@@ -53,7 +53,7 @@ public abstract class Command : PSCmdlet
         invocation.Invoke();
     }
 
-    protected virtual void Configure(Invocation invocation) { }
+    protected abstract void Configure(Invocation invocation);
 
     private string GetThisModulePath()
     {

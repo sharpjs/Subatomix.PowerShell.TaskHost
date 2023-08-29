@@ -99,6 +99,9 @@ public class Invocation : IDisposable
 
     public Invocation AddScript(ScriptBlock script)
     {
+        if (script is null)
+            throw new ArgumentNullException(nameof(script));
+
         _powershell.AddScript(script.ToString());
 
         return this;
@@ -120,6 +123,12 @@ public class Invocation : IDisposable
     {
         Dispose(managed: true);
         GC.SuppressFinalize(this);
+    }
+
+    // For testing
+    internal void SimulateFinalizer()
+    {
+        Dispose(managed: false);
     }
 
     protected virtual void Dispose(bool managed)
