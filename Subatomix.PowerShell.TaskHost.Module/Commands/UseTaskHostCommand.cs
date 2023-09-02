@@ -12,13 +12,15 @@ public class UseTaskHostCommand : Command
 
     protected override void ProcessRecord()
     {
-        using var scope = new TaskHostScope(Host, WithElapsed);
-
         InvokeCore("Use-TaskHost");
     }
 
     protected override void Configure(Invocation invocation)
     {
-        invocation.UseTaskExtractingRedirection(this);
+        var host = new TaskHost(Host, WithElapsed);
+
+        invocation
+            .UseTaskExtractingRedirection(this)
+            .UseHost(host);
     }
 }

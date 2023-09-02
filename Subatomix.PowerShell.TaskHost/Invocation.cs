@@ -7,80 +7,15 @@ public class Invocation : IDisposable
 {
     private const PSDataCollection<PSObject?>? None = null;
 
-    private readonly Runspace                    _runspace;
     private readonly Sma.PowerShell              _powershell;
+    private readonly PSInvocationSettings        _settings;
     private readonly PSDataCollection<PSObject?> _output;
 
-    public Invocation(string runspaceName)
+    public Invocation()
     {
-        if (runspaceName is null)
-            throw new ArgumentNullException(nameof(runspaceName));
-
-        _runspace               = RunspaceFactory.CreateRunspace();
-        _runspace.Name          = runspaceName;
-        _runspace.ThreadOptions = PSThreadOptions.UseCurrentThread;
-
-        _powershell = Sma.PowerShell.Create(_runspace);
-
-        _output = new();
-    }
-
-    public Invocation ImportModules(PSModuleInfo[] modules)
-    {
-        if (modules is null)
-            throw new ArgumentNullException(nameof(modules));
-
-        foreach (var module in modules)
-            ImportModule(module);
-
-        return this;
-    }
-
-    public Invocation ImportModule(PSModuleInfo module)
-    {
-        if (module is null)
-            throw new ArgumentNullException(nameof(module));
-
-        _runspace.InitialSessionState.ImportPSModule(module.Path);
-
-        return this;
-    }
-
-    public Invocation ImportModule(string name)
-    {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
-
-        _runspace.InitialSessionState.ImportPSModule(name);
-
-        return this;
-    }
-
-    public Invocation SetVariables(PSVariable[] variables)
-    {
-        if (variables is null)
-            throw new ArgumentNullException(nameof(variables));
-
-        foreach (var variable in variables)
-            SetVariable(variable);
-
-        return this;
-    }
-
-    public Invocation SetVariable(PSVariable variable)
-    {
-        if (variable is null)
-            throw new ArgumentNullException(nameof(variable));
-
-        _runspace.InitialSessionState.Variables.Add(new SessionStateVariableEntry(
-            variable.Name,
-            variable.Value,
-            variable.Description,
-            variable.Options,
-            variable.Attributes
-        ));
-
-        return this;
+        _powershell = Sma.PowerShell.Create(RunspaceMode.CurrentRunspace);
+        _settings   = new();
+        _output     = new();
     }
 
     public Invocation UseTaskInjectingRedirection(PSCmdlet cmdlet)
@@ -107,16 +42,18 @@ public class Invocation : IDisposable
         return this;
     }
 
+    public Invocation UseHost(PSHost host)
+    {
+        if (host is null)
+            throw new ArgumentNullException(nameof(host));
+
+        _settings.Host = host;
+        return this;
+    }
+
     public void Invoke()
     {
-        var settings = new PSInvocationSettings
-        {
-            ErrorActionPreference = ActionPreference.Stop
-        };
-
-        _runspace.Open();
-
-        _powershell.Invoke<PSObject, PSObject>(input: None!, _output!, settings);
+        _powershell.Invoke(input: None, _output, _settings);
     }
 
     public void Dispose()
@@ -138,6 +75,5 @@ public class Invocation : IDisposable
 
         _output    .Dispose();
         _powershell.Dispose();
-        _runspace  .Dispose();
     }
 }

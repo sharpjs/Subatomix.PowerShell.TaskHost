@@ -40,10 +40,10 @@ public sealed class TaskHost : PSHost
         if (host is null)
             throw new ArgumentNullException(nameof(host));
 
-        _host = host;
-        _ui   = new TaskHostUI(host.UI, stopwatch);
+        _host = host.GetPropertyValue("ExternalHost") as PSHost ?? host;
+        _ui   = new TaskHostUI(_host.UI, stopwatch);
         _id   = Guid.NewGuid();
-        _name = string.Concat("TaskHost<", host.Name, ">");
+        _name = string.Concat("TaskHost<", _host.Name, ">");
     }
 
     /// <summary>

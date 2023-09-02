@@ -4,71 +4,38 @@
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-internal class InvocationTests
+internal class InvocationTests : IDisposable
 {
+    private readonly Runspace _runspace;
+
     // Tests omitted where coverage provided by IntegrationTests
 
-    [Test]
-    public void Construct_NullRunspaceName()
+    public InvocationTests()
     {
-        Invoking(() => new Invocation(null!))
-            .Should().Throw<ArgumentNullException>();
+        _runspace = RunspaceFactory.CreateRunspace();
+        Runspace.DefaultRunspace = _runspace;
+    }
+
+    public void Dispose()
+    {
+        Runspace.DefaultRunspace = null;
+        _runspace.Dispose();
     }
 
     [Test]
-    public void ImportModules_NullModuleInfoArray()
+    public void UseHost_NullHost()
     {
-        using var invocation = CreateInvocation();
+        using var invocation = new Invocation();
 
         invocation
-            .Invoking(i => i.ImportModules(default!))
-            .Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void ImportModule_NullModuleInfo()
-    {
-        using var invocation = CreateInvocation();
-
-        invocation
-            .Invoking(i => i.ImportModule(default(PSModuleInfo)!))
-            .Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void ImportModule_NullModuleName()
-    {
-        using var invocation = CreateInvocation();
-
-        invocation
-            .Invoking(i => i.ImportModule(default(string)!))
-            .Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void SetVariables_NullVariableInfoArray()
-    {
-        using var invocation = CreateInvocation();
-
-        invocation
-            .Invoking(i => i.SetVariables(default!))
-            .Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void SetVariable_NullVariableInfo()
-    {
-        using var invocation = CreateInvocation();
-
-        invocation
-            .Invoking(i => i.SetVariable(default!))
+            .Invoking(i => i.UseHost(default!))
             .Should().Throw<ArgumentNullException>();
     }
 
     [Test]
     public void AddScript_NullScriptBlock()
     {
-        using var invocation = CreateInvocation();
+        using var invocation = new Invocation();
 
         invocation
             .Invoking(i => i.AddScript(default!))
@@ -78,13 +45,8 @@ internal class InvocationTests
     [Test]
     public void Dispose_Unmanaged()
     {
-        using var invocation = CreateInvocation();
+        using var invocation = new Invocation();
 
         invocation.SimulateFinalizer(); // does nothing
-    }
-
-    private static Invocation CreateInvocation()
-    {
-        return new Invocation(TestContext.CurrentContext.Test.Name);
     }
 }
