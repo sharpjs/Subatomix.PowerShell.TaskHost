@@ -146,6 +146,10 @@ public sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteErrorLine(string? text)
     {
+        // Match ConsoleHostUserInterface special-case behavior
+        if (string.IsNullOrEmpty(text))
+            return;
+
         lock (_console)
         {
             var task = Prepare();

@@ -515,10 +515,10 @@ public class TaskHostUITests : TestHarnessBase
 
         ExpectWriteElapsed     (s);
         ExpectWriteTask1Header (s);
-        ExpectWriteErrorLine   (s, null);
-
-        ExpectWriteElapsed     (s);
-        ExpectWriteTask1Header (s);
+    //  ExpectWriteErrorLine   (s, null);   // These are skipped because of a
+                                            // special case in WriteErrorLine
+    //  ExpectWriteElapsed     (s);         // matching ConsoleHostUserInterface
+    //  ExpectWriteTask1Header (s);         // behavior.
         ExpectWrite            (s, "b");
         ExpectWriteErrorLine   (s, "c");
 
