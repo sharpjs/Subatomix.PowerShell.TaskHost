@@ -22,5 +22,7 @@ public class UseTaskHostCommand : Command
         invocation
             .UseTaskExtractingRedirection(this)
             .UseHost(host);
+
+        ErrorFlowFixup.Configure(this, host);
     }
 }
