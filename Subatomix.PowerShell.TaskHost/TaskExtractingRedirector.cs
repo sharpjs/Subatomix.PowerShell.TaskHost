@@ -1,6 +1,8 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+#pragma warning disable IDE0057 // Use range operator
+
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
