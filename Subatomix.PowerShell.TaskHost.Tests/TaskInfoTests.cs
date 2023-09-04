@@ -271,7 +271,7 @@ public static class TaskInfoTests
 
             Task.Name = "Changed";
 
-            AssertNames(Task, "Changed", "Parent|Changed");
+            AssertNames("Changed", "Parent|Changed");
         }
 
         [Test]
@@ -283,7 +283,7 @@ public static class TaskInfoTests
 
             Task.Name = "";
 
-            AssertNames(Task, "", "Parent");
+            AssertNames("", "Parent");
         }
 
         [Test]
@@ -295,7 +295,7 @@ public static class TaskInfoTests
 
             ParentTask!.Name = "Changed";
 
-            AssertNames(Task, "Child", "Changed|Child");
+            AssertNames("Child", "Changed|Child");
         }
 
         [Test]
@@ -307,10 +307,10 @@ public static class TaskInfoTests
 
             ParentTask!.Name = "";
 
-            AssertNames(Task, "Child", "Child");
+            AssertNames("Child", "Child");
         }
 
-        private void AssertNames(TaskInfo task, string name, string fullName)
+        private void AssertNames(string name, string fullName)
         {
             Task.Name    .Should().Be(name)    .And.BeSameAs(Task.Name);
             Task.FullName.Should().Be(fullName).And.BeSameAs(Task.FullName);
