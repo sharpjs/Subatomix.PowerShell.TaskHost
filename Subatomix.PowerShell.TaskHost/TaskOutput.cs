@@ -6,7 +6,7 @@ namespace Subatomix.PowerShell.TaskHost;
 /// <summary>
 ///   A pair consisting of a task associated with an output object.
 /// </summary>
-internal class TaskOutput
+public class TaskOutput
 {
     /// <summary>
     ///   Initializes a new <see cref="TaskOutput"/> instance with the
