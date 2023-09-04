@@ -16,7 +16,7 @@ public abstract class Command : PSCmdlet
         set => _scriptBlock   = value;
     }
 
-    protected void InvokeCore(string? name = null)
+    protected override void ProcessRecord()
     {
         using var invocation = new Invocation();
 

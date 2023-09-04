@@ -10,11 +10,6 @@ public class UseTaskHostCommand : Command
     [Parameter()]
     public SwitchParameter WithElapsed { get; set; }
 
-    protected override void ProcessRecord()
-    {
-        InvokeCore("Use-TaskHost");
-    }
-
     protected override void Configure(Invocation invocation)
     {
         var host = new TaskHost(Host, WithElapsed);

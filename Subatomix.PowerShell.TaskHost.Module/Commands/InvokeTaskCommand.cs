@@ -15,7 +15,7 @@ public class InvokeTaskCommand : Command
     {
         using var scope = TaskScope.Begin(Name);
 
-        InvokeCore($"Task#{scope.Task!.Id}");
+        base.ProcessRecord();
     }
 
     protected override void Configure(Invocation invocation)
