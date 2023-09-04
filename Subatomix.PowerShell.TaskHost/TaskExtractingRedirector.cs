@@ -108,7 +108,6 @@ internal class TaskExtractingRedirector : Redirector
     {
         if (obj is PSObject { BaseObject: TaskOutput output })
         {
-            obj  = output.Object;
             task = output.Task;
             return true;
         }
