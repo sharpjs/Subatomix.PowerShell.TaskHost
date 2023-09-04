@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<helpItems schema="maml"
+            xmlns="http://msh"
+       xmlns:maml="http://schemas.microsoft.com/maml/2004/10"
+    xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10"
+        xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+
+  <!-- 
+    Copyright 2023 Subatomix Research Inc.
+    SPDX-License-Identifier: ISC
+
+    Documentation:
+    https://docs.microsoft.com/en-us/powershell/developer/help/how-to-create-the-cmdlet-help-file
+  -->
+
+  <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+  <!-- Use-TaskHost -->
+
+  <command:command>
+
+    <command:details>
+      <command:name>Use-TaskHost</command:name>
+      <maml:description>
+        <maml:para>Runs commands while augmenting their output to add clarity to long-running and/or parallel tasks.</maml:para>
+      </maml:description>
+      <maml:copyright><maml:para/></maml:copyright>
+      <command:verb>Use</command:verb>
+      <command:noun>TaskHost</command:noun>
+      <dev:version/>
+    </command:details>
+
+    <maml:description>
+      <maml:para>
+        The Use-TaskHost cmdlet executes the statements of a script block while temporarily overriding the current PowerShell host ($Host).  The new host modifies its output streams to add clarity to long-running, potentially parallel tasks.  A companion cmdlet, Invoke-Task, defines the tasks.
+      </maml:para>
+      <maml:para>
+        Used together, the Use-TaskHost and Invoke-Task cmdlets modify output streams as follows:
+      </maml:para>
+      <maml:list>
+        <maml:listItem>
+          <maml:para>(1) Success      wrapped in object with ElapsedTime, Task, and Object properties</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(2) Error        prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(3) Warning      prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(4) Verbose      prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(5) Debug        prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(6) Information  prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>n/a Progress     not modified</maml:para>
+        </maml:listItem>
+      </maml:list>
+      <maml:para><!-- HACK: Get-Help does not put a blank line after the <list> --></maml:para>
+      <maml:para>
+        The -WithElapsed switch of Use-TaskHost enables the capture of elapsed time (since the invocation of Use-TaskHost) in output.  This behavior populates the ElapsedTime property in TaskOutput objects and adds a '[+hh:mm:ss]' line header to textual output streams.
+      </maml:para>
+      <maml:para><!-- HACK: Get-Help does not put a blank line between <para> --></maml:para>
+      <maml:para>
+        The Invoke-Task cmdlet defines a task and enables the association of the task and its output.  This behavior wraps each object emitted from the task's success stream in a TaskOutput object with ElapsedTime, Task, and Object properties.  Combined with Use-TaskHost, this behavior also adds a '[task]' line header to textual output streams, containing the full name of the producing task.
+      </maml:para>
+    </maml:description>
+
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Use-TaskHost</maml:name>
+        <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
+          <maml:name>WithElapsed</maml:name>
+          <maml:description/>
+        </command:parameter>
+        <command:parameter required="true" position="0" pipelineInput="False" globbing="false" variableLength="false">
+          <maml:name>ScriptBlock</maml:name>
+          <maml:description/>
+          <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+
+    <command:parameters>
+
+      <command:parameter required="true" position="0" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>ScriptBlock</maml:name>
+        <maml:description>
+          <maml:para>The commands to run.</maml:para>
+          <maml:para>Specifies the commands to run. Enclose the commands in braces { } to create a script block.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        <dev:type>
+          <maml:name>System.Management.Automation.ScriptBlock</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+
+      <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>WithElapsed</maml:name>
+        <maml:description>
+          <maml:para>Enables the capture of elapsed time in output.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>System.Management.Automation.SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+
+    </command:parameters>
+
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>None</maml:name>
+          <maml:uri />
+        </dev:type>
+        <maml:description>
+          <maml:para>This cmdlet does not accept pipeline input.</maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Management.Automation.PSObject</maml:name>
+          <maml:uri></maml:uri>
+        </dev:type>
+        <maml:description>
+          <maml:para>This cmdlet returns the objects that are produced by the script block.</maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <command:terminatingErrors/>
+    <command:nonTerminatingErrors/>
+    <maml:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>Invoke-Task</maml:linkText>
+        <maml:uri></maml:uri>
+      </maml:navigationLink>
+      <maml:navigationLink>
+        <maml:linkText>GitHub repository:</maml:linkText>
+        <maml:uri>https://github.com/sharpjs/Subatomix.PowerShell.TaskHost</maml:uri>
+      </maml:navigationLink>
+    </maml:relatedLinks>
+
+  </command:command>
+
+  <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+  <!-- Invoke-Task -->
+
+  <command:command>
+
+    <command:details>
+      <command:name>Invoke-Task</command:name>
+      <maml:description>
+        <maml:para>Runs commands as a task.  For use with Use-TaskHost.</maml:para>
+      </maml:description>
+      <maml:copyright><maml:para/></maml:copyright>
+      <command:verb>Invoke</command:verb>
+      <command:noun>Task</command:noun>
+      <dev:version/>
+    </command:details>
+
+    <maml:description>
+      <maml:para>
+        The Invoke-Task cmdlet executes the statements of a script block as a task.  A companion cmdlet, Use-TaskHost, modifies its output streams to add clarity to long-running, potentially parallel tasks.
+      </maml:para>
+      <maml:para>
+        Used together, the Use-TaskHost and Invoke-Task cmdlets modify output streams as follows:
+      </maml:para>
+      <maml:list>
+        <maml:listItem>
+          <maml:para>(1) Success      wrapped in object with ElapsedTime, Task, and Object properties</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(2) Error        prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(3) Warning      prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(4) Verbose      prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(5) Debug        prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>(6) Information  prefixed with "[+hh:mm:ss] [task]: "</maml:para>
+        </maml:listItem>
+        <maml:listItem>
+          <maml:para>n/a Progress     not modified</maml:para>
+        </maml:listItem>
+      </maml:list>
+      <maml:para><!-- HACK: Get-Help does not put a blank line after the <list> --></maml:para>
+      <maml:para>
+        The Invoke-Task cmdlet defines a task and enables the association of the task and its output.  This behavior wraps each object emitted from the task's success stream in a TaskOutput object with ElapsedTime, Task, and Object properties.  Combined with Use-TaskHost, this behavior also adds a '[task]' line header to textual output streams, containing the full name of the producing task.
+      </maml:para>
+      <maml:para><!-- HACK: Get-Help does not put a blank line between <para> --></maml:para>
+      <maml:para>
+        The -WithElapsed switch of Use-TaskHost enables the capture of elapsed time (since the invocation of Use-TaskHost) in output.  This behavior populates the ElapsedTime property in TaskOutput objects and adds a '[+hh:mm:ss]' line header to textual output streams.
+      </maml:para>
+    </maml:description>
+
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Invoke-Task</maml:name>
+        <command:parameter required="false" position="0" pipelineInput="False" globbing="false" variableLength="false">
+          <maml:name>Name</maml:name>
+          <maml:description/>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="true" position="1" pipelineInput="False" globbing="false" variableLength="false">
+          <maml:name>ScriptBlock</maml:name>
+          <maml:description/>
+          <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+
+    <command:parameters>
+
+      <command:parameter required="true" position="1" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>ScriptBlock</maml:name>
+        <maml:description>
+          <maml:para>The commands to run.</maml:para>
+          <maml:para>Specifies the commands to run. Enclose the commands in braces { } to create a script block.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        <dev:type>
+          <maml:name>System.Management.Automation.ScriptBlock</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+
+      <command:parameter required="false" position="0" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>Name</maml:name>
+        <maml:description>
+          <maml:para>Sets the initial name of the task.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>System.String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>Auto-generated from task ID</dev:defaultValue>
+      </command:parameter>
+
+    </command:parameters>
+
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>None</maml:name>
+          <maml:uri />
+        </dev:type>
+        <maml:description>
+          <maml:para>This cmdlet does not accept pipeline input.</maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>Subatomix.PowerShell.TaskHost.TaskOutput</maml:name>
+          <maml:uri></maml:uri>
+        </dev:type>
+        <maml:description>
+          <maml:para>Output of the script block, wrapped in an object with the following properties:</maml:para>
+          <maml:list>
+            <maml:listItem>
+              <maml:para>Task         Task that produced the output</maml:para>
+            </maml:listItem>
+            <maml:listItem>
+              <maml:para>ElapsedTime  Elapsed time since invocation of Use-TaskHost -WithElapsed</maml:para>
+            </maml:listItem>
+            <maml:listItem>
+              <maml:para>Object       Output object of the script block</maml:para>
+            </maml:listItem>
+          </maml:list>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <command:terminatingErrors/>
+    <command:nonTerminatingErrors/>
+    <maml:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>Use-TaskHost</maml:linkText>
+        <maml:uri></maml:uri>
+      </maml:navigationLink>
+      <maml:navigationLink>
+        <maml:linkText>GitHub repository:</maml:linkText>
+        <maml:uri>https://github.com/sharpjs/Subatomix.PowerShell.TaskHost</maml:uri>
+      </maml:navigationLink>
+    </maml:relatedLinks>
+
+  </command:command>
+
+</helpItems>
