@@ -59,6 +59,8 @@ public static class TaskInfoTests
     [TestFixture]
     public class Virtual : Invariant
     {
+        // Also tests nonvirtual tasks with empty names
+
         protected override (TaskInfo task, TaskInfo? parentTask) CreateTask()
             => (new(), null);
 
@@ -72,6 +74,24 @@ public static class TaskInfoTests
         public void Name_Get()
         {
             Task.Name.Should().BeEmpty().And.BeSameAs(Task.Name);
+        }
+
+        [Test]
+        public void FullName_Get()
+        {
+            Task.FullName.Should().BeEmpty().And.BeSameAs(Task.FullName);
+        }
+
+        [Test]
+        public void FormattedName_Get()
+        {
+            Task.FormattedName.Should().BeEmpty().And.BeSameAs(Task.FormattedName);
+        }
+
+        [Test]
+        public void ToString_Invoke()
+        {
+            Task.ToString().Should().Be("#-1").And.BeSameAs(Task.ToString());
         }
 
         [Test]
@@ -235,6 +255,14 @@ public static class TaskInfoTests
         }
 
         [Test]
+        public void ToString_Invoke()
+        {
+            Task.ToString()
+                .Should().Be(Invariant($"#{Task.Id}: Parent|Child"))
+                .And.BeSameAs(Task.ToString());
+        }
+
+        [Test]
         public void Name_Set()
         {
             Name_Get();
@@ -243,9 +271,7 @@ public static class TaskInfoTests
 
             Task.Name = "Changed";
 
-            Task.Name         .Should().Be("Changed")           .And.BeSameAs(Task.Name);
-            Task.FullName     .Should().Be("Parent|Changed")    .And.BeSameAs(Task.FullName);
-            Task.FormattedName.Should().Be("[Parent|Changed]: ").And.BeSameAs(Task.FormattedName);
+            AssertNames(Task, "Changed", "Parent|Changed");
         }
 
         [Test]
@@ -257,9 +283,7 @@ public static class TaskInfoTests
 
             Task.Name = "";
 
-            Task.Name         .Should().Be("")          .And.BeSameAs(Task.Name);
-            Task.FullName     .Should().Be("Parent")    .And.BeSameAs(Task.FullName);
-            Task.FormattedName.Should().Be("[Parent]: ").And.BeSameAs(Task.FormattedName);
+            AssertNames(Task, "", "Parent");
         }
 
         [Test]
@@ -271,9 +295,7 @@ public static class TaskInfoTests
 
             ParentTask!.Name = "Changed";
 
-            Task.Name         .Should().Be("Child")            .And.BeSameAs(Task.Name);
-            Task.FullName     .Should().Be("Changed|Child")    .And.BeSameAs(Task.FullName);
-            Task.FormattedName.Should().Be("[Changed|Child]: ").And.BeSameAs(Task.FormattedName);
+            AssertNames(Task, "Child", "Changed|Child");
         }
 
         [Test]
@@ -285,9 +307,21 @@ public static class TaskInfoTests
 
             ParentTask!.Name = "";
 
-            Task.Name         .Should().Be("Child")    .And.BeSameAs(Task.Name);
-            Task.FullName     .Should().Be("Child")    .And.BeSameAs(Task.FullName);
-            Task.FormattedName.Should().Be("[Child]: ").And.BeSameAs(Task.FormattedName);
+            AssertNames(Task, "Child", "Child");
+        }
+
+        private void AssertNames(TaskInfo task, string name, string fullName)
+        {
+            Task.Name    .Should().Be(name)    .And.BeSameAs(Task.Name);
+            Task.FullName.Should().Be(fullName).And.BeSameAs(Task.FullName);
+
+            Task.FormattedName
+                .Should().Be(Invariant($"[{fullName}]: "))
+                .And.BeSameAs(Task.FormattedName);
+
+            Task.ToString()
+                .Should().Be(Invariant($"#{Task.Id}: {fullName}"))
+                .And.BeSameAs(Task.ToString());
         }
     }
 }

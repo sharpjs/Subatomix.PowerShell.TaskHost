@@ -31,6 +31,7 @@ public sealed class TaskInfo
     private string? _parentFullName;
     private string? _fullName;
     private string? _formattedName;
+    private string? _toString;
 
     /// <summary>
     ///   Initializes a new <see cref="TaskInfo"/> instance and adds the
@@ -191,6 +192,11 @@ public sealed class TaskInfo
             _all.TryRemove(_id, out _);
     }
 
+    public override string ToString()
+    {
+        lock (_lock) return ToStringLocked();
+    }
+
     private void SetNameLocked(string value)
     {
         _name          = value ?? throw new ArgumentNullException(nameof(value));
@@ -228,7 +234,16 @@ public sealed class TaskInfo
             : string.Empty;
     }
 
-    private string Join(string a, string b)
+    private string ToStringLocked()
+    {
+        var fullName = GetFullNameLocked();
+
+        return _toString ??= fullName.Length > 0
+            ? Invariant($"#{_id}: {fullName}")
+            : Invariant($"#{_id}");
+    }
+
+    private static string Join(string a, string b)
     {
         return a.Length == 0 ? b
             :  b.Length == 0 ? a
