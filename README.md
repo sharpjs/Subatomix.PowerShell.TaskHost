@@ -1,138 +1,87 @@
-# Subatomix.PowerShell.TaskHost
+# TaskHost / Subatomix.PowerShell.TaskHost
 
 A thread-safe PowerShell
 [`PSHost`](https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshost)
 wrapper to improve the clarity of output from long-running, possibly parallel
-tasks.
+tasks.  Available as a PowerShell module or as a NuGet package.
 
-The wrapper adds a prefix to each output line, identifying the elapsed time and
-which task produced the output.  Both parts are optional.
-
-```
-╭────────────────┬──────────────────────────────────────╮
-│ Before         │ After                                │
-╞════════════════╪══════════════════════════════════════╡
-│ Example output │ [+00:00:00] [Task 1]: Example output │
-│ Example output │ [+00:00:07] [Task 2]: Example output │
-│ Example output │ [+00:00:42] [Task 3]: Example output │
-│ Example output │ [+00:01:23] [Task 4]: Example output │
-╰────────────────┴──────────────────────────────────────╯
-```
-
-The prefix affects all output *except* the following:
-- Normal object output from PowerShell commands.
-- Progress messages.
-- Prompts for information.
+TaskHost adds a wrapper or header to each output object or line, reporting the
+elapsed time and which task produced the output.  Line header components
+are optional and use color where supported.
+ 
+![Example output](misc/example.png)
 
 ## Status
 
 [![Build](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/workflows/Build/badge.svg)](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/actions)
 [![Build](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/actions)
+[![PSGallery](https://img.shields.io/powershellgallery/v/TaskHost.svg)](https://www.powershellgallery.com/packages/TaskHost)
+[![PSGallery](https://img.shields.io/powershellgallery/dt/TaskHost.svg)](https://www.powershellgallery.com/packages/TaskHost)
 [![NuGet](https://img.shields.io/nuget/v/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
 [![NuGet](https://img.shields.io/nuget/dt/Subatomix.PowerShell.TaskHost.svg)](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
 
-- **Stable:**      A prior version has been in private use for years with no
-                   reported defects.
 - **Tested:**      100% coverage by automated tests.
 - **Documented:**  IntelliSense on everything.  Quick-start guide below.
 
 ## Installation
 
-Install
-[this NuGet Package](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
-in your project.
+⚠ **These instructions are for version 2.0.**  For version 1.0, see
+[the prior version of these instructions](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/release/1.0.0/README.md).
+
+From PowerShell 7 or later, install [the TaskHost module](https://www.powershellgallery.com/packages/TaskHost):
+
+```ps1
+Install-Module TaskHost
+```
+
+Update or uninstall the module with `Update-Module` or `Uninstall-Module`,
+respectively.
+
+Developers wanting to implement similar features in their own software can install
+[the Subatomix.PowerShell.TaskHost NuGet package](https://www.nuget.org/packages/Subatomix.PowerShell.TaskHost)
+to get the building blocks of the TaskHost module.
 
 ## Usage
 
+⚠ **These instructions are for version 2.0.**  For version 1.0, see
+[the prior version of these instructions](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/release/1.0.0/README.md).
+
 ### The Basics
 
-This package is usable from PowerShell script, from PowerShell binary modules,
-or from applications that host PowerShell.
-
-First, import the namespace.
+Start with a `Use-TaskHost` command.
 
 ```ps1
-# PowerShell (must be at top of file)
-using namespace Subatomix.PowerShell.TaskHost
-using namespace System.Management.Automation
-```
-
-```cs
-// C#
-using Subatomix.PowerShell.TaskHost;
-using System.Management.Automation;
-```
-
-Create the variables that later examples need.
-
-```ps1
-# PowerShell
-$ScriptBlock = {
-    # The commands you want to run go here
+Use-TaskHost {
 }
 ```
 
-```cs
-// C#
-var host        = ...; // a PSHost
-var scriptBlock = ...; // a ScriptBlock
-```
-
-Create a single factory instance.
+For each task, add an `Invoke-Task` command.
 
 ```ps1
-# PowerShell
-$Factory = [TaskHostFactory]::new($Host, <#withElapsed:#> $true)
-```
-
-```cs
-// C#
-var factory = new TaskHostFactory(host, withElapsed: true);
-```
-
-**For each task**, use the factory to create a host wrapper for that
-task.
-
-```ps1
-# PowerShell
-$TaskHost = $Factory.Create()
-```
-
-```cs
-// C#
-var taskHost = factory.Create();
-```
-
-Then use the host wrapper with a new `PowerShell` instance for that task.
-
-```ps1
-# PowerShell
-$Shell = [PowerShell]::Create()
-try {
-    $Settings = [PSInvocationSettings]::new()
-    $Settings.Host = $TaskHost
-    $Shell.AddScript($ScriptBlock).Invoke($null, $Settings)
-}
-finally {
-    $Shell.Dispose()
+Use-TaskHost {
+    Invoke-Task {
+        Write-Host "Example output from a task"
+    }
+    Invoke-Task {
+        Write-Host "Example output from another task"
+    }
 }
 ```
 
-```cs
-// C#
-using (var shell = PowerShell.Create())
-{
-    var settings = new PSInvocationSettings { Host = taskHost };
-    shell.AddScript(scriptBlock).Invoke(null, settings);
-}
-```
+A task is a chunk of code whose output should be distinguishable from that of
+other tasks and non-task code.  Beyond that, what constitutes a task is
+entirely the discretion of the user of this module.  There is no restriction on
+the number of or size of tasks or on what can appear in a task's script block.
 
 ### Advanced Usage
 
 The PowerShell `ForEach-Object -Parallel` command complicates the preceding
 example. See
-[this script](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/Subatomix.PowerShell.TaskHost/Test-TaskHost.ps1)
+[this script](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/Subatomix.PowerShell.TaskHost.Module/Test-TaskHost.ps1)
 for a complete example.
+
+<!--
+TODO: Rewrite for 2.0
 
 The host wrapper exposes a `Header` property to enable a task to examine and
 change the header that appears in square brackets `[ ]` before each line of
@@ -147,6 +96,7 @@ Setting the property to an empty string disables the header.
 ```ps1
 $Host.UI.Header = ""
 ```
+-->
 
 <!--
   Copyright 2023 Subatomix Research Inc.

@@ -11,6 +11,11 @@ public class InvokeTaskCommand : Command
     [ValidateNotNullOrEmpty]
     public string? Name { get; set; }
 
+    // -Host
+    [Parameter()]
+    [ValidateNotNullOrEmpty]
+    public PSHost? OverrideHost { get; set; }
+
     protected override void ProcessRecord()
     {
         using var scope = TaskScope.Begin(Name);
@@ -21,5 +26,8 @@ public class InvokeTaskCommand : Command
     protected override void Configure(Invocation invocation)
     {
         invocation.UseTaskInjectingRedirection(this);
+
+        if (OverrideHost is not null)
+            invocation.UseHost(OverrideHost);
     }
 }
