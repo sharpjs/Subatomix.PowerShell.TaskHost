@@ -93,7 +93,7 @@
           <maml:para>The commands to run.</maml:para>
           <maml:para>Specifies the commands to run. Enclose the commands in braces { } to create a script block.</maml:para>
         </maml:description>
-        <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        <command:parameterValue required="true" variableLength="false">System.Management.Automation.ScriptBlock</command:parameterValue>
         <dev:type>
           <maml:name>System.Management.Automation.ScriptBlock</maml:name>
           <maml:uri />
@@ -106,11 +106,6 @@
         <maml:description>
           <maml:para>Enables the capture of elapsed time in output.</maml:para>
         </maml:description>
-        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
-        <dev:type>
-          <maml:name>System.Management.Automation.SwitchParameter</maml:name>
-          <maml:uri />
-        </dev:type>
         <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
 
@@ -213,7 +208,7 @@
     <command:syntax>
       <command:syntaxItem>
         <maml:name>Invoke-Task</maml:name>
-        <command:parameter required="false" position="0" pipelineInput="False" globbing="false" variableLength="false">
+        <command:parameter required="true" position="0" pipelineInput="False" globbing="false" variableLength="false">
           <maml:name>Name</maml:name>
           <maml:description/>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -223,10 +218,28 @@
           <maml:description/>
           <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
         </command:parameter>
+        <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
+          <maml:name>UseHost</maml:name>
+          <maml:description/>
+          <command:parameterValue required="true" variableLength="false">PSHost</command:parameterValue>
+        </command:parameter>
       </command:syntaxItem>
     </command:syntax>
 
     <command:parameters>
+
+      <command:parameter required="true" position="0" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>Name</maml:name>
+        <maml:description>
+          <maml:para>Sets the initial name of the task.  Pass "" to use an unnamed task.  Pass $null to autogenerate a name.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">System.String</command:parameterValue>
+        <dev:type>
+          <maml:name>System.String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
 
       <command:parameter required="true" position="1" pipelineInput="False" globbing="false" variableLength="false">
         <maml:name>ScriptBlock</maml:name>
@@ -234,7 +247,7 @@
           <maml:para>The commands to run.</maml:para>
           <maml:para>Specifies the commands to run. Enclose the commands in braces { } to create a script block.</maml:para>
         </maml:description>
-        <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
+        <command:parameterValue required="true" variableLength="false">System.Management.Automation.ScriptBlock</command:parameterValue>
         <dev:type>
           <maml:name>System.Management.Automation.ScriptBlock</maml:name>
           <maml:uri />
@@ -242,17 +255,17 @@
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
 
-      <command:parameter required="false" position="0" pipelineInput="False" globbing="false" variableLength="false">
-        <maml:name>Name</maml:name>
+      <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
+        <maml:name>UseHost</maml:name>
         <maml:description>
-          <maml:para>Sets the initial name of the task.</maml:para>
+          <maml:para>Overrides $Host inside the script block.  Use this parameter to restore the value of $Host set by Use-TaskHost if some other command (for example, ForEach-Object -Parallel) overrides it.</maml:para>
         </maml:description>
-        <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        <command:parameterValue required="true" variableLength="false">System.Management.Automation.Host.PSHost</command:parameterValue>
         <dev:type>
-          <maml:name>System.String</maml:name>
+          <maml:name>System.Management.Automation.Host.PSHost</maml:name>
           <maml:uri />
         </dev:type>
-        <dev:defaultValue>Auto-generated from task ID</dev:defaultValue>
+        <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
 
     </command:parameters>

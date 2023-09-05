@@ -7,14 +7,14 @@ namespace Subatomix.PowerShell.TaskHost.Commands;
 public class InvokeTaskCommand : Command
 {
     // -Name
-    [Parameter()]
-    [ValidateNotNullOrEmpty]
+    [Parameter(Mandatory = true, Position = -1)]
+    [AllowNull]
+    [AllowEmptyString]
     public string? Name { get; set; }
 
     // -Host
-    [Parameter()]
     [ValidateNotNullOrEmpty]
-    public PSHost? OverrideHost { get; set; }
+    public PSHost? UseHost { get; set; }
 
     protected override void ProcessRecord()
     {
@@ -27,7 +27,7 @@ public class InvokeTaskCommand : Command
     {
         invocation.UseTaskInjectingRedirection(this);
 
-        if (OverrideHost is not null)
-            invocation.UseHost(OverrideHost);
+        if (UseHost is not null)
+            invocation.UseHost(UseHost);
     }
 }
