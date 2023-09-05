@@ -28,7 +28,7 @@ public class IntegrationTests : TestHarnessBase
             _host.Object,
             """
             Use-TaskHost {
-                Invoke-Task { }
+                Invoke-Task "" { }
             }
             """
         );
