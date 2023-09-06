@@ -4,29 +4,33 @@
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-public class HostWriterTests : TestHarnessBase
+public class OutDefaultWriterTests : TestHarnessBase
 {
-    private HostWriter                   Writer { get; }
+    private OutDefaultWriter             Writer { get; }
     private Mock<PSHost>                 Host   { get; }
     private Mock<PSHostUserInterface>    UI     { get; }
     private Mock<PSHostRawUserInterface> RawUI  { get; }
 
     private readonly Runspace _runspace;
 
-    public HostWriterTests()
+    public OutDefaultWriterTests()
     {
-        Host   = Mocks.Create<PSHost>();
-        UI     = Mocks.Create<PSHostUserInterface>();
-        RawUI  = Mocks.Create<PSHostRawUserInterface>();
+        RawUI = Mocks.Create<PSHostRawUserInterface>();
 
-        Host.Setup(h => h.   UI).Returns(   UI.Object);
-        UI  .Setup(u => u.RawUI).Returns(RawUI.Object);
+        UI = Mocks.Create<PSHostUserInterface>();
+        UI.Setup(u => u.RawUI).Returns(RawUI.Object);
 
-        _runspace = RunspaceFactory.CreateRunspace();
+        Host = Mocks.Create<PSHost>();
+        Host.Setup(h => h.UI)        .Returns(UI.Object);
+        Host.Setup(h => h.InstanceId).Returns(Guid.NewGuid());
+        Host.Setup(h => h.Name)      .Returns(nameof(OutDefaultWriterTests));
+        Host.Setup(h => h.Version)   .Returns(new Version(0, 0, 0, 0));
+
+        _runspace = RunspaceFactory.CreateRunspace(Host.Object);
         _runspace.Open();
         Runspace.DefaultRunspace = _runspace;
 
-        Writer = new HostWriter(Host.Object);
+        Writer = new OutDefaultWriter();
     }
 
     protected override void CleanUp(bool managed)
@@ -37,13 +41,6 @@ public class HostWriterTests : TestHarnessBase
         _runspace.Dispose();
 
         base.CleanUp(managed);
-    }
-
-    [Test]
-    public void Construct_NullHost()
-    {
-        Invoking(() => new HostWriter(null!))
-            .Should().Throw<ArgumentNullException>();
     }
 
     [Test]

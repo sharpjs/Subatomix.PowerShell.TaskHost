@@ -130,6 +130,6 @@ internal static class ErrorFlowFixup
 
     private static bool TryForwardToHost(object pipe, PSHost host)
     {
-        return pipe.SetPropertyValue("ExternalWriter", new HostWriter(host));
+        return pipe.SetPropertyValue("ExternalWriter", new OutDefaultWriter());
     }
 }
