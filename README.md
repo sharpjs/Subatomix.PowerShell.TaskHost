@@ -59,10 +59,10 @@ For each task, add an `Invoke-Task` command.
 
 ```ps1
 Use-TaskHost {
-    Invoke-Task {
+    Invoke-Task "Name A" {
         Write-Host "Example output from a task"
     }
-    Invoke-Task {
+    Invoke-Task "Name B" {
         Write-Host "Example output from another task"
     }
 }
