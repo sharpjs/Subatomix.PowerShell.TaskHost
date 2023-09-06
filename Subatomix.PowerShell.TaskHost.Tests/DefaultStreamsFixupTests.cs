@@ -4,28 +4,35 @@
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-public class ErrorFlowFixupTests : TestHarnessBase
+public class DefaultStreamsFixupTests : TestHarnessBase
 {
-    public ErrorFlowFixupTests()
+    public DefaultStreamsFixupTests()
     {
         Cmdlet = Mocks.Create<Cmdlet>().Object;
         Host   = Mocks.Create<PSHost>().Object;
+
+        _runspace = RunspaceFactory.CreateRunspace();
+        _runspace.Open();
+        Runspace.DefaultRunspace = _runspace;
     }
 
     public Cmdlet Cmdlet { get; }
     public PSHost Host   { get; }
 
-    [Test]
-    public void Configure_NullCmdlet()
+    private readonly Runspace _runspace;
+
+    protected override void CleanUp(bool managed)
     {
-        Invoking(() => ErrorFlowFixup.Configure(null!, Host))
-            .Should().Throw<ArgumentNullException>();
+        Runspace.DefaultRunspace = null;
+        _runspace.Dispose();
+
+        base.CleanUp(managed);
     }
 
     [Test]
-    public void Configure_NullHost()
+    public void Configure_NullCmdlet()
     {
-        Invoking(() => ErrorFlowFixup.Configure(Cmdlet, null!))
+        Invoking(() => DefaultStreamsFixup.Configure(null!))
             .Should().Throw<ArgumentNullException>();
     }
 
@@ -82,7 +89,7 @@ public class ErrorFlowFixupTests : TestHarnessBase
         runtime.ErrorOutputPipe
             .Should().NotBeSameAs(pipe)
             .And.BeOfType<FakePipe>()
-            .Which.ExternalWriter.Should().BeOfType<HostWriter>();
+            .Which.ExternalWriter.Should().BeOfType<OutDefaultWriter>();
 
         pipe.ExternalWriter.Should().BeNull();
     }
@@ -225,7 +232,7 @@ public class ErrorFlowFixupTests : TestHarnessBase
     private void TestConfigure(ICommandRuntime? runtime)
     {
         Cmdlet.CommandRuntime = runtime;
-        ErrorFlowFixup.Configure(Cmdlet, Host);
+        DefaultStreamsFixup.Configure(Cmdlet);
     }
 
     private class FakeRuntime : FakeRuntimeBase

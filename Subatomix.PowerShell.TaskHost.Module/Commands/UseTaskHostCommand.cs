@@ -18,6 +18,6 @@ public class UseTaskHostCommand : Command
             .UseTaskExtractingRedirection(this)
             .UseHost(host);
 
-        ErrorFlowFixup.Configure(this, host);
+        DefaultStreamsFixup.Configure(this);
     }
 }
