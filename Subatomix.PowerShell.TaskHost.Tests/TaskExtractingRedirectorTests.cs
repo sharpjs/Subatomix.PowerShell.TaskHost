@@ -21,8 +21,8 @@ public static class TaskExtractingRedirectorTests
 
         protected override (PSObject? input, object? output) SetUpObjectFlow()
         {
-            var input  = new PSObject(new TaskOutput(Task, new object()));
-            var output = input; // Does not unwrap the output
+            var output = new object();
+            var input  = new PSObject(new TaskOutput(Task, output));
 
             return (input, output);
         }
