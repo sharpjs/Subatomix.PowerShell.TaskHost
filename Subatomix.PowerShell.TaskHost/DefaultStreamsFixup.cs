@@ -1,27 +1,30 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.PowerShell.Commands;
 
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
-///   A helper to direct the output and error streams of a <see cref="Cmdlet"/>
-///   to the current <see cref="PSHost"/>.
+///   A helper to correct the routing of the output and error streams of a
+///   <see cref="Cmdlet"/> that has activated a custom <see cref="PSHost"/>.
 /// </summary>
 /// <remarks>
 ///   ⚠ This class uses a PowerShell internal API.  It is possible that some
 ///   future version of PowerShell changes that API, breaking this class.  In
 ///   that case, this class takes care to fail gracefully: the output and error
-///   streams retains their default routing and are not redirected to the
-///   current host.
+///   streams retain default routing, which might bypass the current host.
 /// </remarks>
-internal static class DefaultStreamsFixup
+internal sealed class DefaultStreamsFixup : IDisposable
 {
+    private OutDefaultWriter? _writer;
+
     /// <summary>
-    ///   Directs each of the output and error streams of the specified
-    ///   <see cref="Cmdlet"/> to the current <see cref="PSHost"/>, unless that
-    ///   stream is already subject to merging or redirection.
+    ///   Initializes a new <see cref="DefaultStreamsFixup"/> instance which
+    ///   overrides the default routing of the output and error streams of the
+    ///   specified <see cref="Cmdlet"/>, directing each stream to the current
+    ///   <see cref="PSHost"/> unless that stream is already subject to
+    ///   merging, redirection, or piping.
     /// </summary>
     /// <param name="cmdlet">
     ///   The cmdlet whose output and error streams should be directed to the
@@ -34,10 +37,10 @@ internal static class DefaultStreamsFixup
     ///   ⚠ This method uses a PowerShell internal API.  It is possible that
     ///   some future version of PowerShell changes that API, breaking this
     ///   method.  In that case, this class takes care to fail gracefully: the
-    ///   <paramref name="cmdlet"/> output and error streams retains their
-    ///   default routing and are not redirected to the current host.
+    ///   <paramref name="cmdlet"/> output and error streams retain default
+    ///   routing, which might bypass the current host.
     /// </remarks>
-    public static void Configure(Cmdlet cmdlet)
+    public DefaultStreamsFixup(Cmdlet cmdlet)
     {
         if (cmdlet is null)
             throw new ArgumentNullException(nameof(cmdlet));
@@ -51,11 +54,12 @@ internal static class DefaultStreamsFixup
             // By default, the output and error streams forward to a hidden
             // Out-Default command.  PowerShell tends to construct this command
             // before a custom host becomes current.  The hidden command caches
-            // and uses the previous host, and errors do not flow to the custom
-            // host.  To resolve, replace the error pipe with one that forwards
-            // to a new Out-Default command instance that is constructed after
-            // the custom host becomes current.  The existing pipe must be left
-            // unmodified because PowerShell tends to reuse it.
+            // and uses the previous host, and thus output objects and errors
+            // do not flow to the custom host.  To resolve, replace the output
+            // and error pipes with ones that forward to a new Out-Default
+            // command instance that is constructed *after* the custom host
+            // becomes current.  Do not modify the existing pipe, as PowerShell
+            // tends to reuse it.
 
             var pipe = null as object;
             ConfigureOutput(runtime, ref pipe);
@@ -67,15 +71,17 @@ internal static class DefaultStreamsFixup
             // nice-to-have effect.  If those internals throw, the exception
             // probably is neither useful nor actionable.  Just ignore it in
             // the interest of graceful degradation.
+
+            Dispose();
         }
     }
 
-    private static void ConfigureOutput(ICommandRuntime runtime, ref object? pipe)
+    private void ConfigureOutput(ICommandRuntime runtime, ref object? pipe)
     {
         Configure(runtime, "OutputPipe", ref pipe);
     }
 
-    private static void ConfigureErrors(ICommandRuntime runtime, ref object? pipe)
+    private void ConfigureErrors(ICommandRuntime runtime, ref object? pipe)
     {
         // Skip when 2>&1
         if (!VerifyErrorsNotMerged(runtime))
@@ -84,18 +90,22 @@ internal static class DefaultStreamsFixup
         Configure(runtime, "ErrorOutputPipe", ref pipe);
     }
 
-    private static void Configure(ICommandRuntime runtime, string name, ref object? newPipe)
+    private void Configure(ICommandRuntime runtime, string name, ref object? newPipe)
     {
         // Get existing pipe
         if (runtime.GetPropertyValue(name) is not { } oldPipe)
             return;
 
-        // Skip when n> $null
+        // Skip when: > $null
         if (!VerifyNotRedirectedToNull(oldPipe))
             return;
 
-        // Skip when n> file
+        // Skip when: > file
         if (!VerifyNotRedirectedToFile(oldPipe))
+            return;
+
+        // Skip when: | command
+        if (!VerifyNotPiped(oldPipe))
             return;
 
         // Get replacement pipe
@@ -121,30 +131,37 @@ internal static class DefaultStreamsFixup
         return pipe.IsPropertyValue("PipelineProcessor", v => v is null);
     }
 
-    private static bool TryGetOrCreateForwardingPipe(
+    private static bool VerifyNotPiped(object oldPipe)
+    {
+        return oldPipe.GetPropertyValue("DownstreamCmdlet") is { } processor
+            && processor.IsPropertyValue("Command", x => x is OutDefaultCommand);
+    }
+
+    private bool TryGetOrCreateForwardingPipe(
                                 object  oldPipe,
         [NotNullWhen(true)] ref object? newPipe)
     {
+        // Check if already created new pipe
         if (newPipe is not null)
             return true;
 
+        // Create new pipe
         newPipe = oldPipe.GetType().CreateInstance()!; // null only if oldPipe is Nullable<T>
 
-        var writer = new OutDefaultWriter();
+        // Try to configure new pipe with forwarding writer
+        _writer = new OutDefaultWriter();
+        if (newPipe.SetPropertyValue("ExternalWriter", _writer))
+            return true;
 
-        try
-        {
-            // TODO: Ensure OutDefaultWriter is exposed when no longer needed
-            if (newPipe.SetPropertyValue("ExternalWriter", writer))
-                return true;
+        // Fail
+        Dispose();
+        return false;
+    }
 
-            writer.Dispose();
-            return false;
-        }
-        catch
-        {
-            writer.Dispose();
-            throw;
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _writer?.Dispose();
+        _writer = null;
     }
 }

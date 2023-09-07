@@ -11,6 +11,8 @@ public class Invocation : IDisposable
     private readonly PSInvocationSettings        _settings;
     private readonly PSDataCollection<PSObject?> _output;
 
+    private DefaultStreamsFixup? _fixup;
+
     public Invocation()
     {
         _powershell = Sma.PowerShell.Create(RunspaceMode.CurrentRunspace);
@@ -28,6 +30,8 @@ public class Invocation : IDisposable
     public Invocation UseTaskExtractingRedirection(PSCmdlet cmdlet)
     {
         new TaskExtractingRedirector(_output, _powershell.Streams, cmdlet);
+
+        _fixup = new DefaultStreamsFixup(cmdlet);
 
         return this;
     }
@@ -73,6 +77,7 @@ public class Invocation : IDisposable
         if (!managed)
             return;
 
+        _fixup?    .Dispose();
         _output    .Dispose();
         _powershell.Dispose();
     }

@@ -17,7 +17,5 @@ public class UseTaskHostCommand : Command
         invocation
             .UseTaskExtractingRedirection(this)
             .UseHost(host);
-
-        DefaultStreamsFixup.Configure(this);
     }
 }
