@@ -25,9 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="*.ps1" CopyToOutputDirectory="PreserveNewest" />
-
     <InternalsVisibleTo Include="TaskHost"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="*.ps1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
