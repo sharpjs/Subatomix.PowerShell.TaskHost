@@ -82,18 +82,26 @@ jobs:
           reporttypes: Html;MarkdownSummaryGithub;Badges
           verbosity: Warning
 
-      - name: Publish Coverage Summary
-        run: >
-          cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
-        env:
-          REPORT_PATH: ${{ runner.temp }}/coverage/SummaryGithub.md
-
       - name: Save Coverage Report
         uses: actions/upload-artifact@v3
         #url: https://github.com/actions/upload-artifact
         with:
           name: Coverage Report
           path: ${{ runner.temp }}/coverage
+          if-no-files-found: error
+
+      - name: Publish Coverage Summary
+        run: >
+          cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          REPORT_PATH: ${{ runner.temp }}/coverage/SummaryGithub.md
+
+      - name: Save Package
+        uses: actions/upload-artifact@v3
+        #url: https://github.com/actions/upload-artifact
+        with:
+          name: Package
+          path: ${{ runner.temp }}/dist/packages
           if-no-files-found: error
 
       - name: Save Module
