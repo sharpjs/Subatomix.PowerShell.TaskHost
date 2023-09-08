@@ -71,7 +71,7 @@ jobs:
         run: >
           dotnet test --no-build -c Release
           --settings Coverlet.runsettings
-          --results-directory:${{ runner.temp }}/coverage/raw
+          --results-directory ${{ runner.temp }}/coverage/raw
 
       - name: Prepare Coverage Report
         uses: danielpalme/ReportGenerator-GitHub-Action@5
