@@ -131,4 +131,21 @@ public class OutDefaultWriterTests : TestHarnessBase
 
         count.Should().Be(1);
     }
+
+    [Test]
+    public void WriteN_Multiple()
+    {
+        UI.Setup(u => u.WriteLine("a")).Verifiable();
+        UI.Setup(u => u.WriteLine("b")).Verifiable();
+        UI.Setup(u => u.WriteLine("c")).Verifiable();
+        UI.Setup(u => u.WriteLine("d")).Verifiable();
+
+        var count0 = Writer.Write("a");
+        var count1 = Writer.Write(new[] { "b", "c" }, enumerateCollection: true);
+        var count2 = Writer.Write("d");
+
+        count0.Should().Be(1);
+        count1.Should().Be(2);
+        count2.Should().Be(1);
+    }
 }
