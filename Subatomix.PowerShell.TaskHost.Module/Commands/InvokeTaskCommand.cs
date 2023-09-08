@@ -12,7 +12,8 @@ public class InvokeTaskCommand : Command
     [AllowEmptyString]
     public string? Name { get; set; }
 
-    // -Host
+    // -UseHost
+    [Parameter()]
     [ValidateNotNullOrEmpty]
     public PSHost? UseHost { get; set; }
 
