@@ -49,31 +49,23 @@ internal sealed class DefaultStreamsFixup : IDisposable
         if (cmdlet.CommandRuntime is not { } runtime)
             return;
 
-        try
-        {
-            // By default, the output and error streams forward to a hidden
-            // Out-Default command.  PowerShell tends to construct this command
-            // before a custom host becomes current.  The hidden command caches
-            // and uses the previous host, and thus output objects and errors
-            // do not flow to the custom host.  To resolve, replace the output
-            // and error pipes with ones that forward to a new Out-Default
-            // command instance that is constructed *after* the custom host
-            // becomes current.  Do not modify the existing pipe, as PowerShell
-            // tends to reuse it.
+        // By default, the output and error streams forward to a hidden
+        // Out-Default command.  PowerShell tends to construct this command
+        // before a custom host becomes current.  The hidden command caches and
+        // uses the previous host, and thus output objects and errors do not
+        // flow to the custom host.  To resolve, replace the output and error
+        // pipes with ones that forward to a new Out-Default command instance
+        // that is constructed *after* the custom host becomes current.  Do not
+        // modify the existing pipes, as PowerShell tends to reuse them.
+        //
+        // This method (ab)uses PowerShell internals to provide a merely
+        // nice-to-have effect.  If those internals throw, the exception
+        // probably is neither useful nor actionable.  Just ignore it in the
+        // interest of graceful degradation.
 
-            var pipe = null as object;
-            ConfigureOutput(runtime, ref pipe);
-            ConfigureErrors(runtime, ref pipe);
-        }
-        catch
-        {
-            // This method (ab)uses PowerShell internals to provide a merely
-            // nice-to-have effect.  If those internals throw, the exception
-            // probably is neither useful nor actionable.  Just ignore it in
-            // the interest of graceful degradation.
-
-            Dispose();
-        }
+        var pipe = null as object;
+        try { ConfigureOutput(runtime, ref pipe); } catch { /* fail gracefully */ }
+        try { ConfigureErrors(runtime, ref pipe); } catch { /* fail gracefully */ }
     }
 
     private void ConfigureOutput(ICommandRuntime runtime, ref object? pipe)
@@ -148,14 +140,11 @@ internal sealed class DefaultStreamsFixup : IDisposable
         // Create new pipe
         newPipe = oldPipe.GetType().CreateInstance()!; // null only if oldPipe is Nullable<T>
 
-        // Try to configure new pipe with forwarding writer
+        // Create forwarding writer
         _writer = new OutDefaultWriter();
-        if (newPipe.SetPropertyValue("ExternalWriter", _writer))
-            return true;
 
-        // Fail
-        Dispose();
-        return false;
+        // Try to configure new pipe with forwarding writer
+        return newPipe.SetPropertyValue("ExternalWriter", _writer);
     }
 
     /// <inheritdoc/>

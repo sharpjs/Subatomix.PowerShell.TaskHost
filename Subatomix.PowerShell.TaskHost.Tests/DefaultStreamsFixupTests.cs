@@ -1,302 +1,494 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using Microsoft.PowerShell.Commands;
+
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-public class DefaultStreamsFixupTests : TestHarnessBase
+public class DefaultStreamsFixupTests : IDisposable
 {
+    private readonly Runspace _runspace;
+
+    private DefaultStreamsFixup? _fixup;
+
     public DefaultStreamsFixupTests()
     {
-        Cmdlet = Mocks.Create<Cmdlet>().Object;
-        Host   = Mocks.Create<PSHost>().Object;
-
         _runspace = RunspaceFactory.CreateRunspace();
         _runspace.Open();
+
         Runspace.DefaultRunspace = _runspace;
     }
 
-    public Cmdlet Cmdlet { get; }
-    public PSHost Host   { get; }
-
-    private readonly Runspace _runspace;
-
-    protected override void CleanUp(bool managed)
+    public void Dispose()
     {
         Runspace.DefaultRunspace = null;
-        _runspace.Dispose();
 
-        base.CleanUp(managed);
+        _fixup?  .Dispose();
+        _runspace.Dispose();
     }
 
     [Test]
-    public void Configure_NullCmdlet()
+    public void Construct_NullCmdlet()
     {
-        Invoking(() => DefaultStreamsFixup.Configure(null!))
+        Invoking(() => new DefaultStreamsFixup(null!))
             .Should().Throw<ArgumentNullException>();
     }
 
     [Test]
-    public void Configure_NullCommandRuntime()
+    public void Construct_NullCommandRuntime()
     {
-        TestConfigure(runtime: null);
+        TestFixup(runtime: null);
     }
 
     [Test]
-    public void Configure_ErrorsMerged() // 2>&1
+    public void Construct() // happy path
     {
-        var pipe    = new FakePipe { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe, ErrorMergeTo = MergeTo.Something };
+        var runtime = new FakeRuntime();
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: true);
     }
 
     [Test]
-    public void Configure_ErrorsRedirectedToNull() // 2> $null
+    public void Construct_ErrorsMerged() // 2>&1
     {
-        var pipe    = new FakePipe { NullPipe = true };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            ErrorMergeTo = MergeTo.Something
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ErrorsRedirectedToFile() // 2> file
+    public void Construct_OutputRedirectedToNull() // > $null
     {
-        var pipe    = new FakePipe { PipelineProcessor = new() };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            OutputPipe = new FakePipe { NullPipe = true }
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: false, errors: true);
     }
 
     [Test]
-    public void Configure() // happy path
+    public void Construct_ErrorsRedirectedToNull() // 2> $null
     {
-        var pipe    = new FakePipe { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe { NullPipe = true }
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe
-            .Should().NotBeSameAs(pipe)
-            .And.BeOfType<FakePipe>()
-            .Which.ExternalWriter.Should().BeOfType<OutDefaultWriter>();
-
-        pipe.ExternalWriter.Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorMergeTo_Missing()
+    public void Construct_OutputRedirectedToFile() // > file
     {
-        var pipe    = new FakePipe { };
-        var runtime = new FakeRuntime_NoErrorMergeTo { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            OutputPipe = new FakePipe { PipelineProcessor = new() }
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: false, errors: true);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorMergeTo_Null()
+    public void Construct_ErrorsRedirectedToFile() // 2> file
     {
-        var pipe    = new FakePipe { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe, ErrorMergeTo = null };
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe { PipelineProcessor = new() }
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorMergeTo_NotEnum()
+    public void Construct_ReflectionFail_ErrorMergeTo_Missing()
     {
-        var pipe    = new FakePipe { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe, ErrorMergeTo = new object() };
+        var runtime = new FakeRuntime_NoErrorMergeTo();
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorOutputPipe_Missing()
+    public void Construct_ReflectionFail_ErrorMergeTo_Null()
     {
-        var runtime = new FakeRuntime_NoErrorOutputPipe { };
+        var runtime = new FakeRuntime
+        {
+            ErrorMergeTo = null
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorOutputPipe_Null()
+    public void Construct_ReflectionFail_ErrorMergeTo_NotEnum()
     {
-        var runtime = new FakeRuntime { };
+        var runtime = new FakeRuntime
+        {
+            ErrorMergeTo = new object()
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ErrorOutputPipe_NoDefaultConstructor()
+    public void Construct_ReflectionFail_OutputPipe_Missing()
     {
-        var pipe    = new FakePipe_NoDefaultConstructor(null) { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime_NoOutputPipe();
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: false, errors: true);
     }
 
     [Test]
-    public void Configure_ReflectionFail_NullPipe_Missing()
+    public void Construct_ReflectionFail_ErrorOutputPipe_Missing()
     {
-        var pipe    = new FakePipe_NoNullPipe { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime_NoErrorOutputPipe();
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_NullPipe_Null()
+    public void Construct_ReflectionFail_OutputPipe_Null()
     {
-        var pipe    = new FakePipe { NullPipe = null };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            OutputPipe = null
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: false, errors: true);
     }
 
     [Test]
-    public void Configure_ReflectionFail_NullPipe_UnexpectedType()
+    public void Construct_ReflectionFail_ErrorOutputPipe_Null()
     {
-        var pipe    = new FakePipe { NullPipe = new object() };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = null
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_PipelineProcessor_Missing()
+    public void Construct_ReflectionFail_OutputPipe_NoDefaultConstructor()
     {
-        var pipe    = new FakePipe_NoPipelineProcessor { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            OutputPipe = new FakePipe_NoDefaultConstructor(null)
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe.ExternalWriter.Should().BeNull();
+        runtime.AssertFixups(output: false, errors: true);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ExternalWriter_Missing()
+    public void Construct_ReflectionFail_ErrorOutputPipe_NoDefaultConstructor()
     {
-        var pipe    = new FakePipe_NoExternalWriter { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            // Prevent reuse of output pipe as error pipe
+            OutputPipe      = new FakePipe { NullPipe = true },
+            ErrorOutputPipe = new FakePipe_NoDefaultConstructor(null)
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
+        runtime.AssertFixups(output: false, errors: false);
     }
 
     [Test]
-    public void Configure_ReflectionFail_ExternalWriter_ReadOnly()
+    public void Construct_ReflectionFail_NullPipe_Missing()
     {
-        var pipe    = new FakePipe_ReadOnlyExternalWriter { };
-        var runtime = new FakeRuntime { ErrorOutputPipe = pipe };
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe_NoNullPipe()
+        };
 
-        TestConfigure(runtime);
+        TestFixup(runtime);
 
-        runtime.ErrorOutputPipe.Should().BeSameAs(pipe);
-        pipe   .ExternalWriter .Should().BeNull();
+        runtime.AssertFixups(output: true, errors: false);
     }
 
-    private void TestConfigure(ICommandRuntime? runtime)
+    [Test]
+    public void Construct_ReflectionFail_NullPipe_Null()
     {
-        Cmdlet.CommandRuntime = runtime;
-        DefaultStreamsFixup.Configure(Cmdlet);
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe { NullPipe = null }
+        };
+
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: true, errors: false);
     }
+
+    [Test]
+    public void Construct_ReflectionFail_NullPipe_UnexpectedType()
+    {
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe { NullPipe = new object() }
+        };
+
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: true, errors: false);
+    }
+
+    [Test]
+    public void Construct_ReflectionFail_PipelineProcessor_Missing()
+    {
+        var runtime = new FakeRuntime
+        {
+            ErrorOutputPipe = new FakePipe_NoPipelineProcessor()
+        };
+
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: true, errors: false);
+    }
+
+    [Test]
+    public void Construct_ReflectionFail_ExternalWriter_Missing()
+    {
+        var runtime = new FakeRuntime
+        {
+            // Prevent reuse of output pipe as error pipe
+            OutputPipe      = new FakePipe { NullPipe = true },
+            ErrorOutputPipe = new FakePipe_NoExternalWriter()
+        };
+
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: false, errors: false);
+    }
+
+    [Test]
+    public void Construct_ReflectionFail_ExternalWriter_ReadOnly()
+    {
+        var runtime = new FakeRuntime
+        {
+            // Prevent reuse of output pipe as error pipe
+            OutputPipe      = new FakePipe { NullPipe = true },
+            ErrorOutputPipe = new FakePipe_ReadOnlyExternalWriter()
+        };
+
+        TestFixup(runtime);
+
+        runtime.AssertFixups(output: false, errors: false);
+    }
+
+    private void TestFixup(FakeRuntimeBase? runtime)
+    {
+        runtime?.CaptureOriginalValues();
+
+        var cmdlet = new TestCmdlet { CommandRuntime = runtime };
+
+        _fixup = new DefaultStreamsFixup(cmdlet);
+    }
+
+    private class TestCmdlet : Cmdlet { }
 
     private class FakeRuntime : FakeRuntimeBase
     {
-        internal object? ErrorMergeTo    { get; init; } = MergeTo.None;
-        internal object? ErrorOutputPipe { get; init; }
+        internal object? OutputPipe      { get; set; }
+        internal object? ErrorOutputPipe { get; set; }
+        internal object? ErrorMergeTo    { get; set; } = MergeTo.None;
     }
 
-    private class FakeRuntime_NoErrorMergeTo : FakeRuntimeBase
+    private class FakeRuntime_NoOutputPipe : FakeRuntimeBase
     {
-        //absent MergeTo ErrorMergeTo    { get; init; }
-        internal object? ErrorOutputPipe { get; init; }
-    }
+        //absent object? OutputPipe      { get; set; }
+        internal object? ErrorOutputPipe { get; set; }
+        internal object? ErrorMergeTo    { get; set; } = MergeTo.None;
+    } 
 
     private class FakeRuntime_NoErrorOutputPipe : FakeRuntimeBase
     {
-        internal MergeTo ErrorMergeTo    { get; init; }
-        //absent object? ErrorOutputPipe { get; init; }
+        internal object? OutputPipe      { get; set; }
+        //absent object? ErrorOutputPipe { get; set; }
+        internal object? ErrorMergeTo    { get; set; } = MergeTo.None;
     } 
+
+    private class FakeRuntime_NoErrorMergeTo : FakeRuntimeBase
+    {
+        internal object? OutputPipe      { get; set; }
+        internal object? ErrorOutputPipe { get; set; }
+        //absent object? ErrorMergeTo    { get; set; } = MergeTo.None;
+    }
 
     private class FakePipe
     {
-        internal object? NullPipe          { get; init; } = false;
-        internal object? PipelineProcessor { get; init; }
-        internal object? ExternalWriter    { get; set;  }
+        // DownstreamCmdlet must be null in new instances of this type to match
+        // the behavior of PowerShell's Pipe class, because the happy path
+        // through the code under test will create a new instance of this type.
+        // The other FakePipe_* types are for unhappy paths and do not face the
+        // same requirement.
+
+        internal object? DownstreamCmdlet  { get; set; } // null; see note above
+        internal object? NullPipe          { get; set; } = false;
+        internal object? PipelineProcessor { get; set; }
+        internal object? ExternalWriter    { get; set; }
     }
 
-    private class FakePipe_NoDefaultConstructor : FakePipe
+    private class FakePipe_NoDownstreamCmdlet
     {
-        public FakePipe_NoDefaultConstructor(object? _) { }
+        //absent object? DownstreamCmdlet  { get; set; } = new FakeCommandProcessor();
+        internal object? NullPipe          { get; set; } = false;
+        internal object? PipelineProcessor { get; set; }
+        internal object? ExternalWriter    { get; set; }
     }
 
     private class FakePipe_NoNullPipe
     {
-        //absent object? NullPipe          { get; init; } = false;
-        internal object? PipelineProcessor { get; init; }
-        internal object? ExternalWriter    { get; set;  }
+        internal object? DownstreamCmdlet  { get; set; } = new FakeCommandProcessor();
+        //absent object? NullPipe          { get; set; } = false;
+        internal object? PipelineProcessor { get; set; }
+        internal object? ExternalWriter    { get; set; }
     }
 
     private class FakePipe_NoPipelineProcessor
     {
-        internal object? NullPipe          { get; init; } = false;
-        //absent object? PipelineProcessor { get; init; }
-        internal object? ExternalWriter    { get; set;  }
+        internal object? DownstreamCmdlet  { get; set; } = new FakeCommandProcessor();
+        internal object? NullPipe          { get; set; } = false;
+        //absent object? PipelineProcessor { get; set; }
+        internal object? ExternalWriter    { get; set; }
     }
 
     private class FakePipe_NoExternalWriter
     {
-        internal object? NullPipe          { get; init; } = false;
-        internal object? PipelineProcessor { get; init; }
-        //absent object? ExternalWriter    { get; set;  }
+        internal object? DownstreamCmdlet  { get; set; } = new FakeCommandProcessor();
+        internal object? NullPipe          { get; set; } = false;
+        internal object? PipelineProcessor { get; set; }
+        //absent object? ExternalWriter    { get; set; }
     }
 
     private class FakePipe_ReadOnlyExternalWriter
     {
-        internal object? NullPipe          { get; init; } = false;
-        internal object? PipelineProcessor { get; init; }
-        internal object? ExternalWriter    { get; /*!*/ }
+        internal object? DownstreamCmdlet  { get; set; } = new FakeCommandProcessor();
+        internal object? NullPipe          { get; set; } = false;
+        internal object? PipelineProcessor { get; set; }
+        internal object? ExternalWriter    { get; /**/ } // read-only
+    }
+
+    private class FakePipe_NoDefaultConstructor : FakePipe
+    {
+        public FakePipe_NoDefaultConstructor(object? _)
+        {
+            DownstreamCmdlet = new FakeCommandProcessor();
+        }
+    }
+
+    private class FakeCommandProcessor
+    {
+        internal object? Command { get; set; } = new OutDefaultCommand();
     }
 
     private enum MergeTo { None, Something }
 
     private class FakeRuntimeBase : ICommandRuntime
     {
+        public FakeRuntimeBase()
+        {
+            CurrentOutputPipe      = CreateDefaultPipe();
+            CurrentErrorOutputPipe = CreateDefaultPipe();
+        }
+
+        private object? OriginalOutputPipe      { get; set; }
+        private object? OriginalErrorOutputPipe { get; set; }
+
+        private object? CurrentOutputPipe
+        {
+            get => this.GetPropertyValue("OutputPipe");
+            set => this.SetPropertyValue("OutputPipe", value);
+        }
+
+        private object? CurrentErrorOutputPipe
+        {
+            get => this.GetPropertyValue("ErrorOutputPipe");
+            set => this.SetPropertyValue("ErrorOutputPipe", value);
+        }
+
+        private static FakePipe CreateDefaultPipe()
+        {
+            return new()
+            {
+                DownstreamCmdlet = new FakeCommandProcessor()
+            };
+        }
+
+        public void CaptureOriginalValues()
+        {
+            OriginalOutputPipe      = CurrentOutputPipe;
+            OriginalErrorOutputPipe = CurrentErrorOutputPipe;
+        }
+
+        public void AssertFixups(bool output, bool errors)
+        {
+            var outputPipe      = CurrentOutputPipe;
+            var errorOutputPipe = CurrentErrorOutputPipe;
+
+            AssertInvariants();
+            AssertFixup(outputPipe,      OriginalOutputPipe,      output, "OutputPipe");
+            AssertFixup(errorOutputPipe, OriginalErrorOutputPipe, errors, "ErrorOutputPipe");
+
+            if (output && errors)
+                outputPipe.Should().BeSameAs(errorOutputPipe);
+        }
+
+        private void AssertInvariants()
+        {
+            if (OriginalErrorOutputPipe is FakePipe originalErrorOutputPipe)
+                originalErrorOutputPipe.ExternalWriter.Should().BeNull();
+
+            if (OriginalOutputPipe is FakePipe originalOutputPipe)
+                originalOutputPipe.ExternalWriter.Should().BeNull();
+        }
+
+        private void AssertFixup(object? currentPipe, object? originalPipe, bool expected, string s)
+        {
+            var because = $"{s} {(expected ? "should" : "should not")} be fixed up";
+
+            if (expected)
+                currentPipe.Should().NotBeSameAs(originalPipe, because)
+                    .And.BeOfType<FakePipe>(because)
+                    .Which.ExternalWriter.Should().BeOfType<OutDefaultWriter>(because);
+            else
+                currentPipe.Should().BeSameAs(originalPipe, because);
+        }
+
+        #region ICommandRuntime stub
+
         public PSTransactionContext CurrentPSTransaction
             => throw new NotImplementedException();
 
@@ -353,5 +545,7 @@ public class DefaultStreamsFixupTests : TestHarnessBase
 
         public void WriteWarning(string text)
             => throw new NotImplementedException();
+
+        #endregion
     }
 }
