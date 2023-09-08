@@ -48,8 +48,8 @@ public class IntegrationTests : TestHarnessBase
             $TestVarA = 42
             $TestVarB = "eh"
 
-            Use-TaskHost -Module (Get-Module TestModule*) -Variable (Get-Variable TestVar*) {
-                Invoke-Task TaskX -Module (Get-Module TestModule*) -Variable (Get-Variable TestVar*) {
+            Use-TaskHost {
+                Invoke-Task TaskX -UseHost $Host {
                     Use-TestModuleA
                     Use-TestModuleB
                     $TestVarA
@@ -59,7 +59,13 @@ public class IntegrationTests : TestHarnessBase
             """
         );
 
-        output   .Should().NotBeEmpty();
+        output.Should().BeEquivalentTo(new[]
+        {
+            new PSObject("TestModuleA output"),
+            new PSObject("TestModuleB output"),
+            new PSObject(42 as object),
+            new PSObject("eh")
+        });
         exception.Should().BeNull();
     }
 }
