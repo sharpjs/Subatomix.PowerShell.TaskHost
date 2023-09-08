@@ -65,7 +65,7 @@ jobs:
         run: >
           dotnet build --no-restore -c Release
           -p:TreatWarningsAsErrors=true
-          -p:PackageOutputPath=${{ runner.temp }}/dist
+          -p:PackageOutputRoot=${{ runner.temp }}/dist/
 
       - name: Test
         run: >
@@ -96,24 +96,36 @@ jobs:
           path: ${{ runner.temp }}/coverage
           if-no-files-found: error
 
-      - name: Save Package
+      - name: Save Module
         uses: actions/upload-artifact@v3
         #url: https://github.com/actions/upload-artifact
         with:
-          name: Packages
-          path: ${{ runner.temp }}/dist
+          name: Module
+          path: ${{ runner.temp }}/dist/modules
           if-no-files-found: error
 
       - name: Publish Package
         if: startsWith(github.ref, 'refs/tags/release/')
         shell: pwsh
         run: >
-          dotnet nuget push "${{ runner.temp }}/dist/*.nupkg"
+          dotnet nuget push "${{ runner.temp }}/dist/packages/*.nupkg"
           -s https://api.nuget.org/v3/index.json
           -k $env:NUGET_API_KEY
           --skip-duplicate
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Publish Module
+        if: startsWith(github.ref, 'refs/tags/release/')
+        shell: pwsh
+        run: >
+          dotnet nuget push "${{ runner.temp }}/dist/modules/*.nupkg"
+          -s https://www.powershellgallery.com/
+          -k $env:PSGALLERY_API_KEY
+          --skip-duplicate
+          --no-symbols
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -124,6 +136,6 @@ jobs:
           prerelease: ${{ contains('-', steps.stamp.outputs.version) }}
           draft: true
           bodyFile: CHANGES.md
-          artifacts: ${{ runner.temp }}/dist/*nupkg
+          artifacts: ${{ runner.temp }}/dist/**/*nupkg
           artifactErrorsFailBuild: true
           token: ${{ secrets.GITHUB_TOKEN }}

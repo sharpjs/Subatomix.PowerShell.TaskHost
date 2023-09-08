@@ -44,7 +44,8 @@
 
   <!-- Packaging properties -->
   <PropertyGroup>
-    <PackageOutputPath>..\dist\</PackageOutputPath>
+    <PackageOutputRoot>..\dist\</PackageOutputRoot>
+    <PackageOutputPath>$(PackageOutputRoot)</PackageOutputPath>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

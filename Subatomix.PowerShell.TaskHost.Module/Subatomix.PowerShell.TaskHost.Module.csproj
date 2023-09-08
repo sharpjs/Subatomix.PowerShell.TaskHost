@@ -10,6 +10,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>TaskHost</AssemblyName>
     <RootNamespace>Subatomix.PowerShell.TaskHost</RootNamespace>
+    <PackageOutputPath>$(PackageOutputRoot)modules</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

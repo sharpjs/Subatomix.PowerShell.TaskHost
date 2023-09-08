@@ -9,6 +9,7 @@
     <Description>A PowerShell PSHost wrapper to improve the clarity of output from long-running, potentially parallel tasks.</Description>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageOutputPath>$(PackageOutputRoot)packages</PackageOutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
