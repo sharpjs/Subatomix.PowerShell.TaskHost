@@ -5,9 +5,9 @@ A thread-safe PowerShell
 wrapper to improve the clarity of output from long-running, possibly parallel
 tasks.  Available as a PowerShell module or as a NuGet package.
 
-TaskHost adds a wrapper or header to each output object or line, reporting the
-elapsed time and which task produced the output.  Line header components
-are optional and use color where supported.
+TaskHost adds a header to each line of output, reporting the elapsed time and
+which task produced the output.  Line header components are optional and use
+color where supported.
  
 ![Example output](misc/example.png)
 
@@ -55,48 +55,96 @@ Use-TaskHost {
 }
 ```
 
+Optionally, add `-WithElapsed` to enable the elapsed-time header.
+
+```ps1
+Use-TaskHost -WithElapsed {
+}
+```
+
 For each task, add an `Invoke-Task` command.
 
 ```ps1
-Use-TaskHost {
-    Invoke-Task "Name A" {
+Use-TaskHost -WithElapsed  {
+
+    Invoke-Task "Step 1" {
         Write-Host "Example output from a task"
     }
-    Invoke-Task "Name B" {
+
+    Invoke-Task "Step 2" {
         Write-Host "Example output from another task"
     }
+
 }
+```
+
+Output:
+
+```
+[+00:00:00] [Step 1]: Example output from a task
+[+00:00:00] [Step 2]: Example output from another task
 ```
 
 A task is a chunk of code whose output should be distinguishable from that of
 other tasks and non-task code.  Beyond that, what constitutes a task is
-entirely the discretion of the user of this module.  There is no restriction on
-the number of or size of tasks or on what can appear in a task's script block.
+entirely at the discretion of the user of this module.  There is no restriction
+on the number of or size of tasks or on what can appear in a task's script
+block.
+
+Tasks are nestable.
+
+```ps1
+Use-TaskHost -WithElapsed  {
+    Invoke-Task "Step 3" {
+
+        Invoke-Task "Part 1" {
+            Write-Host "Example output from a nested task"
+        }
+
+    }
+}
+```
+
+Output:
+
+```
+[+00:00:00] [Step 3|Part 1]: Example output from a nested task
+```
 
 ### Advanced Usage
 
 The PowerShell `ForEach-Object -Parallel` command complicates the preceding
 example. See
 [this script](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/Subatomix.PowerShell.TaskHost.Module/Test-TaskHost.ps1)
-for a complete example.
+for a working example with detailed explanation.
 
-<!--
-TODO: Rewrite for 2.0
-
-The host wrapper exposes a `Header` property to enable a task to examine and
-change the header that appears in square brackets `[ ]` before each line of
-output.  This property is modifiable from the task script itself.
+Information about the currently executing task is available via the following
+expression, which returns null if there is no such task:
 
 ```ps1
-$Host.UI.Header = "new header"
+[Subatomix.PowerShell.TaskHost.TaskInfo]::Current
 ```
 
-Setting the property to an empty string disables the header.
+The `TaskInfo` object provides a few useful properties:
+
+- `Id`       – Unique integer identifier for the task.
+- `Name`     – Name of the task.  Writable.
+- `FullName` – `Name` prefixed with the `FullName` of the task's parent, if any.
+- `Parent`   – The task in which the current task is nested, if any.
+
+The `FullName` property determines the text that TaskHost prepends to each
+output line.  To change the text, set the `Name` property of the task or of its
+ancestors.
 
 ```ps1
-$Host.UI.Header = ""
+[Subatomix.PowerShell.TaskHost.TaskInfo]::Current.Name = "New name"
 ```
--->
+
+To remove the line header, set the property to an empty string.
+
+```ps1
+[Subatomix.PowerShell.TaskHost.TaskInfo]::Current.Name = ""
+```
 
 <!--
   Copyright 2023 Subatomix Research Inc.
