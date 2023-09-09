@@ -26,7 +26,7 @@ color where supported.
 
 ## Installation
 
-⚠ **These instructions are for version 2.0.** pre-releases.  For version 1.0, see
+⚠ **These instructions are for version 2.0.* pre-releases.  For version 1.0, see
 [the prior version of these instructions](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/release/1.0.0/README.md).
 
 From PowerShell 7 or later, install [the TaskHost module](https://www.powershellgallery.com/packages/TaskHost):
@@ -44,7 +44,7 @@ to get the building blocks of the TaskHost module.
 
 ## Usage
 
-⚠ **These instructions are for version 2.0.** pre-releases.  For version 1.0, see
+⚠ **These instructions are for version 2.0.* pre-releases.  For version 1.0, see
 [the prior version of these instructions](https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/release/1.0.0/README.md).
 
 ### The Basics
