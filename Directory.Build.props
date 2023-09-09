@@ -40,9 +40,6 @@
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
-  <ItemGroup>
-    <Using Include="System.FormattableString" Static="true" />
-  </ItemGroup>
 
   <!-- Packaging properties -->
   <PropertyGroup>
