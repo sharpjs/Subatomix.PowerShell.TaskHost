@@ -1,15 +1,16 @@
-# TaskHost / Subatomix.PowerShell.TaskHost
+## About
 
-A thread-safe PowerShell
+The **TaskHost** PowerShell module and **Subatomix.PowerShell.TaskHost** NuGet
+package provide a thread-safe PowerShell
 [`PSHost`](https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshost)
 wrapper to improve the clarity of output from long-running, possibly parallel
-tasks.  Available as a PowerShell module or as a NuGet package.
+tasks.
 
 TaskHost adds a header to each line of output, reporting the elapsed time and
 which task produced the output.  Line header components are optional and use
 color where supported.
  
-![Example output](misc/example.png)
+![Example output](https://raw.githubusercontent.com/sharpjs/Subatomix.PowerShell.TaskHost/main/misc/example.png)
 
 ## Status
 

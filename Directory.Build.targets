@@ -16,6 +16,8 @@
           Pack="true" PackagePath="" CopyToOutputDirectory="Never" />
     <None Include="..\LICENSE.txt" Link="Properties\LICENSE.txt"
           Pack="true" PackagePath="$(PackageLicenseFile)" CopyToOutputDirectory="Never" />
+    <None Include="..\README.md" Link="Properties\README.md"
+          Pack="true" PackagePath="$(PackageReadmeFile)" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
   <!-- Visibility -->
