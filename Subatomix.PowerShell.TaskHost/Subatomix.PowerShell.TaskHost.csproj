@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="TaskHost"/>
+    <InternalsVisibleTo Include="TaskHost" />
   </ItemGroup>
 
   <ItemGroup>
