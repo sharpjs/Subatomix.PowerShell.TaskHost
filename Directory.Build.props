@@ -21,7 +21,6 @@
     <Copyright>© $([System.DateTime]::UtcNow.Year) $(Company)</Copyright>
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/sharpjs/Subatomix.PowerShell.TaskHost</PackageProjectUrl>
-    <PackageTags>PSHost Task Worker</PackageTags>
     <PackageReleaseNotes>$(PackageProjectUrl)/blob/main/CHANGES.md</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>

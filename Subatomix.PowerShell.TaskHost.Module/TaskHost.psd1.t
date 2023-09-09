@@ -45,7 +45,7 @@
             LicenseUri   = 'https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/LICENSE.txt'
             IconUri      = 'https://github.com/sharpjs/Subatomix.PowerShell.TaskHost/blob/main/icon.png'
             Tags         = @(
-                "PSHost",
+                "PSHost", "Host", "Task", "Output", "Color", "Colour",
                 "PSEdition_Core", "Windows", "Linux", "MacOS"
             )
         }

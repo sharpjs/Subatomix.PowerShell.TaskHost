@@ -11,6 +11,10 @@
     <AssemblyName>TaskHost</AssemblyName>
     <RootNamespace>Subatomix.PowerShell.TaskHost</RootNamespace>
     <PackageOutputPath>$(PackageOutputRoot)modules</PackageOutputPath>
+    <PackageTags>
+      PSHost Host Task Output Color Colour
+      PSEdition_Core Windows Linux MacOS
+    </PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
