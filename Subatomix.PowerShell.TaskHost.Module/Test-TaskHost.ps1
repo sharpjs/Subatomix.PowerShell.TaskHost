@@ -76,7 +76,7 @@ process {
             Import-Module $using:ModulePath
 
             # Run the task, restoring the desired host
-            Invoke-Task -Name "Task $_" -OverrideHost $using:MyHost $ScriptBlock
+            Invoke-Task -Name "Task $_" -UseHost $using:MyHost $ScriptBlock
         }
     }
 }
