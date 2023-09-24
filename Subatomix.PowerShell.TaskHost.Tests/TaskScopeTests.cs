@@ -51,10 +51,10 @@ public class TaskScopeTests
     {
         using var scope = TaskScope.Begin();
 
-        scope.Task!            .Should().NotBeNull();
-        scope.Task!.Name       .Should().MatchRegex("^Task [1-9][0-9]*$");
-        scope.Task!.RetainCount.Should().Be(1);
-        TaskInfo.Current       .Should().BeSameAs(scope.Task);
+        scope.Task            .Should().NotBeNull();
+        scope.Task.Name       .Should().MatchRegex("^Task [1-9][0-9]*$");
+        scope.Task.RetainCount.Should().Be(1);
+        TaskInfo.Current      .Should().BeSameAs(scope.Task);
     }
 
     [Test]
@@ -62,16 +62,10 @@ public class TaskScopeTests
     {
         using var scope = TaskScope.Begin("Test");
 
-        scope.Task!            .Should().NotBeNull();
-        scope.Task!.Name       .Should().Be("Test");
-        scope.Task!.RetainCount.Should().Be(1);
-        TaskInfo.Current       .Should().BeSameAs(scope.Task);
-    }
-
-    [Test]
-    public void Task_Default()
-    {
-        default(TaskScope).Task.Should().BeNull();
+        scope.Task            .Should().NotBeNull();
+        scope.Task.Name       .Should().Be("Test");
+        scope.Task.RetainCount.Should().Be(1);
+        TaskInfo.Current      .Should().BeSameAs(scope.Task);
     }
 
     [Test]
@@ -85,23 +79,16 @@ public class TaskScopeTests
     }
 
     [Test]
-    public void Dispose_Default()
-    {
-        default(TaskScope).Dispose();
-        default(TaskScope).Dispose();
-    }
-
-    [Test]
     public void Dispose_Multiple()
     {
-        Invoking(() =>
-        {
-            var scope = TaskScope.Begin();
+        var task  = new TaskInfo();
+        var scope = new TaskScope(task);
 
-            scope.Dispose();
-            scope.Dispose(); // throws
-        })
-        .Should().Throw<InvalidOperationException>();
+        scope.Dispose();
+        scope.Dispose(); // does othing
+
+        task.RetainCount.Should().Be(0);
+        TaskInfo.Current.Should().BeNull();
     }
 
     [Test]

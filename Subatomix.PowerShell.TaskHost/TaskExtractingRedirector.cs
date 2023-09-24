@@ -67,17 +67,17 @@ internal class TaskExtractingRedirector : Redirector
         using (Extract(ref record)) base.WriteInformation(record);
     }
 
-    private TaskScope Extract(ref object? obj)
+    private TaskScope? Extract(ref object? obj)
     {
         return TryExtract(ref obj, out var task) ? Wrap(task) : default;
     }
 
-    private TaskScope Extract(ref string? message)
+    private TaskScope? Extract(ref string? message)
     {
         return TryExtract(ref message, out var task) ? Wrap(task) : default;
     }
 
-    private TaskScope Extract(ref ErrorRecord record)
+    private TaskScope? Extract(ref ErrorRecord record)
     {
         if (record is not { ErrorDetails: { Message: var message } details })
             return default;
@@ -92,7 +92,7 @@ internal class TaskExtractingRedirector : Redirector
         return found ? Wrap(task!) : default;
     }
 
-    private TaskScope Extract(ref InformationRecord record)
+    private TaskScope? Extract(ref InformationRecord record)
     {
         if (record is not { Source: var source })
             return default;

@@ -8,11 +8,12 @@ using static TaskInfo;
 /// <summary>
 ///   A scope in which a particular task is the current task.
 /// </summary>
-public readonly ref struct TaskScope
+public sealed class TaskScope : IDisposable
 {
-    private readonly TaskInfo? _task;
+    private readonly TaskInfo  _task;
     private readonly TaskInfo? _previous;
-    private readonly bool      _disposable;
+
+    private bool _disposed;
 
     /// <summary>
     ///   Begins a new task.
@@ -61,30 +62,25 @@ public readonly ref struct TaskScope
             throw new ArgumentNullException(nameof(task));
 
         _task = task;
-        task?.Retain();
+        task.Retain();
 
         _previous = Current;
         Current   = task;
-
-        _disposable = true;
     }
 
     /// <summary>
-    ///   Gets the task referenced by the scope, or <see langword="null"/> for
-    ///   the default <see cref="TaskScope"/>.
+    ///   Gets the task referenced by the scope.
     /// </summary>
-    public TaskInfo? Task => _task;
+    public TaskInfo Task => _task;
 
     /// <summary>
     ///   Disposes the scope.
     /// </summary>
     /// <remarks>
     ///   <para>
-    ///     When invoked on the default <see cref="TaskScope"/> value, this
-    ///     method does nothing.  Otherwise, this method restores the previous
-    ///     value of <see cref="Current"/>.  When all scopes referencing a task
-    ///     are disposed, the task becomes inaccessible via <see cref="All"/>
-    ///     and <see cref="Get"/>.
+    ///     This method restores the previous value of <see cref="Current"/>.
+    ///     When all scopes referencing a task are disposed, the task becomes
+    ///     inaccessible via <see cref="All"/> and <see cref="Get"/>.
     ///   </para>
     ///   <para>
     ///     A nested scope must be disposed before its containing scope.
@@ -92,12 +88,11 @@ public readonly ref struct TaskScope
     ///   </para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    ///   The scope has been disposed already, or a nested scope has not been
-    ///   disposed.
+    ///   A nested scope has not been disposed.
     /// </exception>
     public void Dispose()
     {
-        if (!_disposable)
+        if (_disposed)
             return;
 
         if (Current != _task)
@@ -108,7 +103,7 @@ public readonly ref struct TaskScope
 
         Current = _previous;
 
-        // Nulls prevented in constructor
-        _task!.Release();
+        _task.Release();
+        _disposed = true;
     }
 }
