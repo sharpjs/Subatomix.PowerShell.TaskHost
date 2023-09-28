@@ -66,6 +66,11 @@ internal sealed class DefaultStreamsFixup : IDisposable
         var pipe = null as object;
         try { ConfigureOutput(runtime, ref pipe); } catch { /* fail gracefully */ }
         try { ConfigureErrors(runtime, ref pipe); } catch { /* fail gracefully */ }
+
+        // Experiment result: Setting the other pipes (ex: WarningOutputPipe)
+        // does not persist to a child PowerShell instance.  A command executed
+        // by the child shell has a new CommandRuntime whose WarningOutputPipe
+        // is null.
     }
 
     private void ConfigureOutput(ICommandRuntime runtime, ref object? pipe)
