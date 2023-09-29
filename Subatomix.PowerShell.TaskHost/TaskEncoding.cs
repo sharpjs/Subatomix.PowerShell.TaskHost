@@ -15,7 +15,7 @@ internal static class TaskEncoding
 {
     #region Injection
 
-    private const char
+    public const char
         StartDelimiter = '\x01', // SOH = Start of Heading
         EndDelimiter   = '\x02'; // SOT = Start of Text
 
@@ -23,6 +23,9 @@ internal static class TaskEncoding
     public static object? Inject(object? obj)
     {
         if (TaskInfo.Current is not { } task)
+            return obj;
+
+        if (IsInjected(obj))
             return obj;
 
         return InjectCore(obj, task);
@@ -36,18 +39,24 @@ internal static class TaskEncoding
 
         message ??= string.Empty;
 
+        if (IsInjected(message))
+            return message;
+
         return InjectCore(message, task);
     }
 
     [return: NotNullIfNotNull(nameof(record))]
     public static ErrorRecord? Inject(ErrorRecord? record)
     {
-        // PowerShell does not send a null record.
+        // PowerShell does not send a null record
         if (record is null || TaskInfo.Current is not { } task)
             return record;
 
         var details = record.ErrorDetails;
         var message = details?.Message ?? string.Empty;
+
+        if (IsInjected(message))
+            return record;
 
         record.ErrorDetails = new(InjectCore(message, task))
         {
@@ -60,13 +69,33 @@ internal static class TaskEncoding
     [return: NotNullIfNotNull(nameof(record))]
     public static InformationRecord? Inject(InformationRecord? record)
     {
-        // PowerShell does not send a null record.
+        // PowerShell does not send a null record
         if (record is null || TaskInfo.Current is not { } task)
             return record;
 
         var source = record.Source ?? string.Empty;
 
+        if (IsInjected(source))
+            return record;
+
         record.Source = InjectCore(source, task);
+
+        return record;
+    }
+
+    [return: NotNullIfNotNull(nameof(record))]
+    public static InformationalRecord? Inject(InformationalRecord? record)
+    {
+        // PowerShell does not send a null record
+        if (record is null || TaskInfo.Current is not { } task)
+            return record;
+
+        var message = record.Message ?? string.Empty;
+
+        if (IsInjected(message))
+            return record;
+
+        record.Message = InjectCore(message, task);
 
         return record;
     }
@@ -74,6 +103,16 @@ internal static class TaskEncoding
     public static string EncodeId(long id)
     {
         return Invariant($"{StartDelimiter}{id}{EndDelimiter}");
+    }
+
+    private static bool IsInjected(object? obj)
+    {
+        return obj is PSObject { BaseObject: TaskOutput };
+    }
+
+    private static bool IsInjected(string message)
+    {
+        return message.StartsWith(StartDelimiter);
     }
 
     private static TaskOutput InjectCore(object? obj, TaskInfo task)
@@ -97,71 +136,52 @@ internal static class TaskEncoding
 
     public static TaskScope? Extract(ref object? obj)
     {
-        return TryExtract(ref obj, out var task) ? Wrap(task) : default;
+        if (obj is not PSObject { BaseObject: TaskOutput output })
+            return null;
+
+        obj = output.Object;
+
+        return Consign(output.Task);
     }
 
-    public static TaskScope? Extract(ref string? message)
+    public static TaskScope? Extract([NotNullIfNotNull(nameof(message))] ref string? message)
     {
-        return TryExtract(ref message, out var task) ? Wrap(task) : default;
+        if (!TryExtractId(ref message, out var id))
+            return null;
+
+        return Resolve(id);
     }
 
-    public static TaskScope? Extract(ref ErrorRecord record)
+    public static TaskScope? Extract([NotNullIfNotNull(nameof(record))] ref ErrorRecord? record)
     {
         if (record is not { ErrorDetails: { Message: var message } details })
-            return default;
+            return null;
 
-        var found = TryExtract(ref message, out var task);
+        if (!TryExtractId(ref message, out var id))
+            return null;
 
         record.ErrorDetails = new(message)
         {
             RecommendedAction = details.RecommendedAction
         };
 
-        return found ? Wrap(task!) : default;
+        return Resolve(id);
     }
 
-    public static TaskScope? Extract(ref InformationRecord record)
+    public static TaskScope? Extract([NotNullIfNotNull(nameof(record))] ref InformationRecord? record)
     {
         if (record is not { Source: var source })
-            return default;
+            return null;
 
-        var found = TryExtract(ref source, out var task);
+        if (!TryExtractId(ref source, out var id))
+            return null;
 
         record.Source = source;
 
-        return found ? Wrap(task!) : default;
+        return Resolve(id);
     }
 
-    private static bool TryExtract(ref object? obj, [MaybeNullWhen(false)] out TaskInfo task)
-    {
-        if (obj is PSObject { BaseObject: TaskOutput output })
-        {
-            obj  = output.Object;
-            task = output.Task;
-            return true;
-        }
-        else
-        {
-            task = null;
-            return false;
-        }
-    }
-
-    private static bool TryExtract(ref string? s, [MaybeNullWhen(false)] out TaskInfo task)
-    {
-        if (TryExtractId(ref s, out var id) && TaskInfo.Get(id) is { } found)
-        {
-            task = found;
-            return true;
-        }
-        else
-        {
-            task = null;
-            return false;
-        }
-    }
-
-    internal static bool TryExtractId(ref string? s, out long id)
+    internal static bool TryExtractId([NotNullIfNotNull(nameof(s))] ref string? s, out long id)
     {
         if (s is not null
             && s.StartsWith(StartDelimiter)
@@ -183,7 +203,12 @@ internal static class TaskEncoding
         }
     }
 
-    private static TaskScope Wrap(TaskInfo task)
+    private static TaskScope? Resolve(long id)
+    {
+        return TaskInfo.Get(id) is { } task ? Consign(task) : null;
+    }
+
+    private static TaskScope Consign(TaskInfo task)
     {
         // Transfer release responsibility to a scope
         var scope = new TaskScope(task);

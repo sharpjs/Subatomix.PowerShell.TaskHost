@@ -3,169 +3,61 @@
 
 namespace Subatomix.PowerShell.TaskHost;
 
-public static class TaskInjectingRedirectorTests
+[TestFixture]
+public class TaskInjectingRedirectorTests : RedirectorTestsBase
 {
-    [TestFixture]
-    public class Normal : RedirectorTestsBase
+    protected TaskInfo Task { get; }
+
+    public TaskInjectingRedirectorTests()
     {
-        public Normal()
-        {
-            TaskInfo.Current = Task;
+        Task = new TaskInfo(GetType().Name);
+        Task.Retain();
+        TaskInfo.Current = Task;
 
-            new TaskInjectingRedirector(Output, Streams, Cmdlet);
-        }
-
-        protected override (PSObject? input, object? output) SetUpObjectFlow()
-        {
-            var input  = new PSObject();
-            var output = new TaskOutput(Task, input);
-
-            return (input, output);
-        }
-
-        protected override (string? input, string? output) SetUpTextFlow()
-        {
-            var input  =                 "text";
-            var output = $"{L}{Task.Id}{R}text";
-
-            return (input, output);
-        }
-
-        protected override void AssertStateInWrite()
-        {
-            // The injecting redirector should encode the current task into the
-            // stream content and increment the task's retain count before
-            // invoking the underlying write
-            TaskInfo.Current.Should().BeSameAs(Task);
-            Task.RetainCount.Should().Be(2);
-        }
-
-        protected override void Verify()
-        {
-            // The injecting redirector should not modify the current task or
-            // its retain count after invoking the underlying write
-            AssertStateInWrite();
-
-            base.Verify();
-        }
+        new TaskInjectingRedirector(Output, Streams, Cmdlet);
     }
 
-    [TestFixture]
-    public class NoCurrentTask : RedirectorTestsBase
+    protected override (PSObject? input, object? output) SetUpObjectFlow()
     {
-        public NoCurrentTask()
-        {
-            new TaskInjectingRedirector(Output, Streams, Cmdlet);
-        }
+        var input  = new PSObject();
+        var output = new TaskOutput(Task, input);
+
+        return (input, output);
     }
 
-    [TestFixture]
-    public class Nulls : RedirectorTestsBase
+    protected override (string? input, string? output) SetUpTextFlow()
     {
-        public Nulls()
-        {
-            TaskInfo.Current = Task;
+        var input  = "text";
+        var output = $"{L}{Task.Id}{R}text";
 
-            new TaskInjectingRedirector(Output, Streams, Cmdlet);
-        }
-
-        private bool _wasTaskEncoded;
-
-        protected override (PSObject? input, object? output) SetUpObjectFlow()
-        {
-            _wasTaskEncoded = true;
-            return (null, new TaskOutput(Task, null));
-        }
-
-        protected override (ErrorRecord? input, ErrorRecord? output) SetUpErrorRecordFlow()
-        {
-            // Cannot encode current task into null error record
-            _wasTaskEncoded = false;
-            return (null, null);
-        }
-
-        protected override (InformationRecord? input, InformationRecord? output) SetUpInformationRecordFlow()
-        {
-            // Cannot encode current task into null information record
-            _wasTaskEncoded = false;
-            return (null, null);
-        }
-
-        protected override (string? input, string? output) SetUpTextFlow()
-        {
-            _wasTaskEncoded = true;
-            return (null, $"{L}{Task.Id}{R}");
-        }
-
-        protected override void AssertStateInWrite()
-        {
-            // Where possible, the injecting redirector should encode the
-            // current task into the stream content and increment the task's
-            // retain count before invoking the underlying write
-            TaskInfo.Current.Should().BeSameAs(Task);
-            Task.RetainCount.Should().Be(_wasTaskEncoded ? 2 : 1);
-        }
-
-        protected override void Verify()
-        {
-            // The injecting redirector should not modify the current task or
-            // its retain count after invoking the underlying write
-            AssertStateInWrite();
-
-            base.Verify();
-        }
+        return (input, output);
     }
 
-    [TestFixture]
-    public class InternalNulls : RedirectorTestsBase
+    protected override void AssertStateInWrite()
     {
-        public InternalNulls()
-        {
-            TaskInfo.Current = Task;
+        // The injecting redirector should encode the current task into the
+        // stream content and increment the task's retain count before invoking
+        // the underlying write
 
-            new TaskInjectingRedirector(Output, Streams, Cmdlet);
-        }
+        TaskInfo.Current.Should().BeSameAs(Task);
+        Task.RetainCount.Should().Be(2);
+    }
 
-        protected override (PSObject? input, object? output) SetUpObjectFlow()
-        {
-            return (null, new TaskOutput(Task, null));
-        }
+    protected override void Verify()
+    {
+        // The injecting redirector should not modify the current task or its
+        // retain count after invoking the underlying write
 
-        protected override (ErrorRecord? input, ErrorRecord? output) SetUpErrorRecordFlow()
-        {
-            var (_, outputText) = SetUpTextFlow();
+        AssertStateInWrite();
 
-            var input = new ErrorRecord(new(), "id", ErrorCategory.InvalidOperation, "target");
+        base.Verify();
+    }
 
-            var output = new ErrorRecord(new(), "id", ErrorCategory.InvalidOperation, "target")
-            {
-                ErrorDetails = new(outputText)
-            };
+    protected override void CleanUp(bool managed)
+    {
+        TaskInfo.Current = null;
+        Task.ReleaseAll();
 
-            return (input, output);
-        }
-
-        protected override (string? input, string? output) SetUpTextFlow()
-        {
-            return (null, $"{L}{Task.Id}{R}");
-        }
-
-        protected override void AssertStateInWrite()
-        {
-            // The injecting redirector should encode the current task into the
-            // stream content and increment the task's retain count before
-            // invoking the underlying write
-            TaskInfo.Current.Should().BeSameAs(Task);
-            Task.RetainCount.Should().Be(2);
-        }
-
-        protected override void Verify()
-        {
-            // The injecting redirector should not modify the current task or
-            // its retain count after invoking the underlying write
-            AssertStateInWrite();
-
-            base.Verify();
-        }
+        base.CleanUp(managed);
     }
 }

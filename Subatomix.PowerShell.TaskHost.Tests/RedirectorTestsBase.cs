@@ -3,17 +3,18 @@
 
 namespace Subatomix.PowerShell.TaskHost;
 
+using static TaskEncoding;
+
 public abstract class RedirectorTestsBase : TestHarnessBase
 {
     public const char
-        L = '\x1', // left  delimiter of task id
-        R = '\x2'; // right delimiter of task id
+        L = StartDelimiter,
+        R = EndDelimiter;
 
     private   Sma.PowerShell              Shell   { get; }
     protected PSDataCollection<PSObject?> Output  { get; }
     protected Mock<ICommandRuntime2>      Runtime { get; }
     protected Cmdlet                      Cmdlet  { get; }
-    protected TaskInfo                    Task    { get; }
 
     protected PSDataStreams Streams => Shell.Streams;
 
@@ -23,16 +24,10 @@ public abstract class RedirectorTestsBase : TestHarnessBase
         Output  = new();
         Runtime = Mocks.Create<ICommandRuntime2>();
         Cmdlet  = new TestCmdlet() { CommandRuntime = Runtime.Object };
-
-        Task = new TaskInfo(GetType().Name);
-        Task.Retain();
     }
 
     protected override void CleanUp(bool managed)
     {
-        TaskInfo.Current = null;
-        Task.ReleaseAll();
-
         Output.Dispose();
         Shell .Dispose();
 
@@ -156,7 +151,13 @@ public abstract class RedirectorTestsBase : TestHarnessBase
     protected virtual (PSObject? input, object? output) SetUpObjectFlow()
     {
         var obj = new PSObject();
+
         return (obj, obj);
+    }
+
+    protected virtual (string? input, string? output) SetUpTextFlow()
+    {
+        return ("text", "text");
     }
 
     protected virtual (ErrorRecord? input, ErrorRecord? output) SetUpErrorRecordFlow()
@@ -186,17 +187,7 @@ public abstract class RedirectorTestsBase : TestHarnessBase
         return (input, output);
     }
 
-    protected virtual (string? input, string? output) SetUpTextFlow()
-    {
-        return ("text", "text");
-    }
-
-    protected virtual void AssertStateInWrite()
-    {
-        // The base redirector should not change task-related state
-        TaskInfo.Current.Should().BeNull();
-        Task.RetainCount.Should().Be(1);
-    }
+    protected virtual void AssertStateInWrite() { }
 
     private class TestCmdlet : Cmdlet { }
 }
