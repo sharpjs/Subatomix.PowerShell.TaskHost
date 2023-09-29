@@ -124,7 +124,7 @@ public static class TaskExtractingRedirectorTests
             text         = text?        .Replace('<', L).Replace('>', R);
             expectedText = expectedText?.Replace('<', L).Replace('>', R);
 
-            var ok = TaskExtractingRedirector.TryExtractId(ref text, out var id);
+            var ok = TaskEncoding.TryExtractId(ref text, out var id);
 
             ok  .Should().Be(expectedOk);
             text.Should().Be(expectedText);

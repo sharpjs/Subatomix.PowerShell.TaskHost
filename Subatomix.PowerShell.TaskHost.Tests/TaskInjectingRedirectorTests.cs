@@ -51,22 +51,12 @@ public static class TaskInjectingRedirectorTests
     }
 
     [TestFixture]
-    public class NoCurrentTask
+    public class NoCurrentTask : RedirectorTestsBase
     {
-        [Test]
-        public void Construct_NoCurrentTask()
+        public NoCurrentTask()
         {
-            TaskInfo.Current.Should().BeNull();
-
-            using var shell  = Sma.PowerShell.Create();
-            using var output = new PSDataCollection<PSObject?>();
-                  var cmdlet = new TestCmdlet();
-
-            Invoking(() => new TaskInjectingRedirector(output, shell.Streams, cmdlet))
-                .Should().Throw<InvalidOperationException>();
+            new TaskInjectingRedirector(Output, Streams, Cmdlet);
         }
-
-        private class TestCmdlet : Cmdlet { }
     }
 
     [TestFixture]

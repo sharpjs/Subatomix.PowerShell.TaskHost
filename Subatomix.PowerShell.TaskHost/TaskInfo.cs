@@ -23,6 +23,7 @@ public sealed class TaskInfo
     // Primary instance data
     private readonly TaskInfo? _parent;
     private readonly long      _id;
+    private readonly string    _encodedId;
     private readonly object    _lock = new();
     private          string    _name;
     private          long      _retainCount;
@@ -56,11 +57,12 @@ public sealed class TaskInfo
     /// </remarks>
     internal TaskInfo(string? name)
     {
-        _parent = Current;
-        _id     = Interlocked.Increment(ref _counter);
-        _name   = name ?? Invariant($"Task {_id}");
+        _parent    = Current;
+        _id        = Interlocked.Increment(ref _counter);
+        _encodedId = TaskEncoding.EncodeId(_id);
+        _name      = name ?? Invariant($"Task {_id}");
 
-        _all[_id] = this;
+        _all[_id]  = this;
     }
 
     /// <summary>
@@ -74,8 +76,9 @@ public sealed class TaskInfo
     /// </remarks>
     internal TaskInfo()
     {
-        _id   = -1;
-        _name = string.Empty;
+        _id        = -1;
+        _encodedId = string.Empty;
+        _name      = string.Empty;
     }
 
     /// <summary>
@@ -107,6 +110,12 @@ public sealed class TaskInfo
     ///   Gets a unique identifier for the task.
     /// </summary>
     public long Id => _id;
+
+    /// <summary>
+    ///   Gets a unique identifier for the task, encoded for injection into
+    ///   strings by <see cref="TaskEncoding"/>.
+    /// </summary>
+    internal string EncodedId => _encodedId;
 
     /// <summary>
     ///   Gets or sets the name of the task.  Cannot be <see langword="null"/>.
