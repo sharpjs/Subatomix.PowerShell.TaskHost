@@ -8,7 +8,7 @@ using static TaskEncoding;
 /// <summary>
 ///   A <see cref="Redirector"/> that injects the identity of the current task
 ///   (<see cref="TaskInfo.Current"/>) into output streams for consumption by
-///   <see cref="TaskExtractingRedirector"/>.
+///   <see cref="TaskExtractingRedirector"/> or <see cref="TaskHostUI"/>.
 /// </summary>
 /// <remarks>
 ///   An injector-extractor pair flows the value of <see cref="TaskInfo.Current"/>
