@@ -6,7 +6,7 @@
     Demonstrates usage of Subatomix.PowerShell.TaskHost.
 
 .DESCRIPTION
-    The Test-TaskHost script demonstrates the usage of the Subatomix.PowerShell.TaskHost package.
+    The Test-TaskHost script demonstrates the usage of the TaskHost module.
 
     The script uses 'ForEach-Object -Parallel' to illustrate workarounds specific to that command.
 
