@@ -49,6 +49,8 @@ internal static class ScriptExecutor
         try
         {
             shell.Invoke(input: null, output, settings);
+
+            exception = shell.Streams.Error.FirstOrDefault()?.Exception;
         }
         catch (Exception e)
         {
