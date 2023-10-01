@@ -117,9 +117,10 @@ public class IntegrationTests : TestHarnessBase
     [Test]
     public void NullUI()
     {
-        _ui.Setup(u => u.WriteWarningLine(
-            "A Use-TaskHost command will have no effect because $Host.UI is null."
-        )).Verifiable();
+        var warning = null as string;
+
+        _ui.Setup(u => u.WriteWarningLine(It.IsAny<string>()))
+            .Callback((string s) => warning = s);
 
         var (output, exception) = ScriptExecutor.Execute(
             _host.Object,
@@ -133,5 +134,6 @@ public class IntegrationTests : TestHarnessBase
 
         output   .Should().BeEmpty();
         exception.Should().BeNull();
+        warning  .Should().Be("A Use-TaskHost command will have no effect because $Host.UI is null.");
     }
 }
