@@ -10,30 +10,38 @@ public class UseTaskHostCommand : Command
     [Parameter()]
     public SwitchParameter WithElapsed { get; set; }
 
+    private static int  _depth;
+    private        bool _isNested;
+
+    protected override bool ShouldBypass
+        // Avoid duplicate hosts
+        => _isNested || base.ShouldBypass;
+
+    protected override void ProcessRecord()
+    {
+        _isNested = Interlocked.Increment(ref _depth) > 1;
+
+        try
+        {
+            base.ProcessRecord();
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _depth);
+        }
+    }
+
     protected override void Configure(Invocation invocation)
     {
+        invocation.UseTaskExtractingRedirection(this);
+
         // Typically, the value of $Host is an instance of InternalPSHost whose
-        // ExternalHost property exposes the actual host.  For advanced cases,
-        // recognize a $_TaskHostIsActive variable as an alternative way for
-        // scripts to indicate the presence of an existing TaskHost.
-
+        // ExternalHost property exposes the actual host.
         var host = Host.GetPropertyValue("ExternalHost") as PSHost ?? Host;
-        if (host is TaskHost)
-            return;
 
-        if (GetVariableValue("_TaskHostIsActive") is true)
-            return;
-
-        if (host.UI is null)
-        {
+        if (host.UI is not null)
+            invocation.UseHost(new TaskHost(Host, WithElapsed));
+        else
             WriteWarning("A Use-TaskHost command will have no effect because $Host.UI is null.");
-            return;
-        }
-
-        host = new TaskHost(Host, WithElapsed);
-
-        invocation
-            .UseTaskExtractingRedirection(this)
-            .UseHost(host);
     }
 }
