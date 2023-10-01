@@ -37,7 +37,7 @@ public class UseTaskHostCommand : Command
 
         // Typically, the value of $Host is an instance of InternalPSHost whose
         // ExternalHost property exposes the actual host.
-        var host = Host.GetPropertyValue("ExternalHost") as PSHost ?? Host;
+        var host = Host.Unwrap();
 
         if (host.UI is not null)
             invocation.UseHost(new TaskHost(Host, WithElapsed));

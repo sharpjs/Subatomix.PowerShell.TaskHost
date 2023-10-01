@@ -47,4 +47,27 @@ public static class Extensions
 
         return result;
     }
+
+    /// <summary>
+    ///   Gets the underlying host if the specified host is an instance of the
+    ///   PowerShell <c>InternalPSHost</c> wrapper class.  Otherwise, returns
+    ///   the specified host.
+    /// </summary>
+    /// <param name="host">
+    ///   The host instance to unwrap.
+    /// </param>
+    /// <returns>
+    ///   The underlying host, if <paramref name="host"/> is an instance of
+    ///   <c>InternalPSHost</c>; otherwise, <paramref name="host"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    ///   <paramref name="host"/> is <see langword="null"/>.
+    /// </exception>
+    internal static PSHost Unwrap(this PSHost host)
+    {
+        if (host is null)
+            throw new ArgumentNullException(nameof(host));
+
+        return host.GetPropertyValue("ExternalHost") as PSHost ?? host;
+    }
 }

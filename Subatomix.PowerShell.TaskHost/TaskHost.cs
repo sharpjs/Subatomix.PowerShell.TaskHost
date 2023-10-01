@@ -42,8 +42,8 @@ public sealed class TaskHost : PSHost
 
         // Typically, the value of $Host is an instance of InternalPSHost whose
         // ExternalHost property exposes the actual host.
+        _host = host.Unwrap();
 
-        _host = host.GetPropertyValue("ExternalHost") as PSHost ?? host;
         _ui   = new TaskHostUI(_host.UI, stopwatch);
         _id   = Guid.NewGuid();
         _name = string.Concat("TaskHost<", _host.Name, ">");
