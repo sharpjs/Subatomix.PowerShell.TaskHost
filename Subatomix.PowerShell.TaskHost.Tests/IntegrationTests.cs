@@ -126,7 +126,7 @@ public class IntegrationTests : TestHarnessBase
             _host.Object,
             """
             1 | ForEach-Object -Parallel {
-                # $Host.UI is $null here
+                Import-Module .\TaskHost.psd1
                 Use-TaskHost { }
             }
             """
