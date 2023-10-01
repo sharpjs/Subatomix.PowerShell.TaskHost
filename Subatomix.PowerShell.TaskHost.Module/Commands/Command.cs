@@ -5,6 +5,9 @@ namespace Subatomix.PowerShell.TaskHost.Commands;
 
 public abstract class Command : PSCmdlet
 {
+    internal const string
+        BypassVariableName = "TaskHostBypass";
+
     private ScriptBlock? _scriptBlock;
 
     // -ScriptBlock
@@ -16,14 +19,19 @@ public abstract class Command : PSCmdlet
         set => _scriptBlock   = value;
     }
 
+    protected virtual bool ShouldBypass
+        => GetVariableValue(BypassVariableName) is not (null or false);
+
     protected override void ProcessRecord()
     {
         using var invocation = new Invocation();
 
-        invocation
-            .AddScript(ScriptBlock);
+        invocation.AddScript(ScriptBlock);
 
-        Configure(invocation);
+        if (ShouldBypass)
+            invocation.UseVerbatimRedirection(this);
+        else
+            Configure(invocation);
 
         invocation.Invoke();
     }

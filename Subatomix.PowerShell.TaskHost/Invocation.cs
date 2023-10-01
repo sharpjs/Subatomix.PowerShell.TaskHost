@@ -20,6 +20,13 @@ public class Invocation : IDisposable
         _output     = new();
     }
 
+    public Invocation UseVerbatimRedirection(PSCmdlet cmdlet)
+    {
+        new Redirector(_output, _powershell.Streams, cmdlet);
+
+        return this;
+    }
+
     public Invocation UseTaskInjectingRedirection(PSCmdlet cmdlet)
     {
         new TaskInjectingRedirector(_output, _powershell.Streams, cmdlet);
