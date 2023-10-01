@@ -40,12 +40,6 @@ process {
     #   ForEach-Object, then convert back to script blocks once inside the
     #   -Parallel script block.
     #
-    # - Inside the -Parallel script block, any custom host active in the outer
-    #   scope is no longer active, having been supplanted by ForEach-Object's
-    #   own host wrapper.  Get the custom host before invoking ForEach-Object,
-    #   then use Invoke-Task -OverrideHost to restore the custom host once
-    #   inside the -Parallel script block.
-    #
     # - ForEach-Object -Parallel flows its output streams via a cross-thread
     #   producer-consumer queue that does not preserve execution context and
     #   thus forgets the current task.  Use-TaskHost and Invoke-Task internally
@@ -63,10 +57,6 @@ process {
         # Must reimport desired modules in each task.
         $ModulePath = Get-Module TaskHost | ForEach-Object Path | Split-Path | Join-Path -ChildPath TaskHost.psd1
 
-        # TRAP: ForEach-Object -Parallel overrides the host with its own.
-        # Must get the host here, then restore it in each task.
-        $MyHost = $Host
-
         # Do some parallel tasks
         1..$Count | ForEach-Object -ThrottleLimit $ThrottleLimit -Parallel {
             # Reconstitute the -ScriptBlock parameter value from string.
@@ -76,7 +66,7 @@ process {
             Import-Module $using:ModulePath
 
             # Run the task, restoring the desired host
-            Invoke-Task -Name "Task $_" -UseHost $using:MyHost $ScriptBlock
+            Invoke-Task -Name "Task $_" $ScriptBlock
         }
     }
 }

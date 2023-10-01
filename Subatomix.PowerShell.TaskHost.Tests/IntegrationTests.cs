@@ -50,7 +50,7 @@ public class IntegrationTests : TestHarnessBase
             $TestVarB = "eh"
 
             Use-TaskHost -WithElapsed {
-                Invoke-Task TaskX -UseHost $Host {
+                Invoke-Task TaskX {
                     Use-TestModuleA
                     Use-TestModuleB
                     $TestVarA

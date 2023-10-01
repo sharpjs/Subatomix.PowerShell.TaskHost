@@ -218,11 +218,6 @@
           <maml:description/>
           <command:parameterValue required="true" variableLength="false">ScriptBlock</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
-          <maml:name>UseHost</maml:name>
-          <maml:description/>
-          <command:parameterValue required="true" variableLength="false">PSHost</command:parameterValue>
-        </command:parameter>
       </command:syntaxItem>
     </command:syntax>
 
@@ -250,19 +245,6 @@
         <command:parameterValue required="true" variableLength="false">System.Management.Automation.ScriptBlock</command:parameterValue>
         <dev:type>
           <maml:name>System.Management.Automation.ScriptBlock</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
-      </command:parameter>
-
-      <command:parameter required="false" position="named" pipelineInput="False" globbing="false" variableLength="false">
-        <maml:name>UseHost</maml:name>
-        <maml:description>
-          <maml:para>Overrides $Host inside the script block.  Use this parameter to restore the value of $Host set by Use-TaskHost if some other command (for example, ForEach-Object -Parallel) overrides it.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">System.Management.Automation.Host.PSHost</command:parameterValue>
-        <dev:type>
-          <maml:name>System.Management.Automation.Host.PSHost</maml:name>
           <maml:uri />
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
