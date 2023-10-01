@@ -11,7 +11,7 @@ public class Invocation : IDisposable
     private readonly PSInvocationSettings        _settings;
     private readonly PSDataCollection<PSObject?> _output;
 
-    private DefaultStreamsFixup? _fixup;
+    private IDisposable? _fixup;
 
     public Invocation()
     {
@@ -30,6 +30,8 @@ public class Invocation : IDisposable
     public Invocation UseTaskInjectingRedirection(PSCmdlet cmdlet)
     {
         new TaskInjectingRedirector(_output, _powershell.Streams, cmdlet);
+
+        _fixup = new TaskInjectingBufferTransformer(cmdlet.Host);
 
         return this;
     }
