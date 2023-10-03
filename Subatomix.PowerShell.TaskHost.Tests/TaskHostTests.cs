@@ -32,6 +32,12 @@ public class TaskHostTests : TestHarnessBase
     }
 
     [Test]
+    public void Initialize()
+    {
+        TaskHost.Initialize();
+    }
+
+    [Test]
     public void Construct_NullHost()
     {
         Invoking(() => new TaskHost(null!, false))

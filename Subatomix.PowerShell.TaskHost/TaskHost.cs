@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Subatomix.PowerShell.TaskHost;
 
@@ -16,6 +17,12 @@ public sealed class TaskHost : PSHost
     private readonly TaskHostUI _ui;    // Child UI wrapper
     private readonly Guid       _id;    // Host identifier (random)
     private readonly string     _name;  // Host name
+
+    /// <summary>
+    ///   Ensures that the containing assembly is loaded.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    internal static void Initialize() { }
 
     /// <summary>
     ///   Initializes a new <see cref="TaskHost"/> instance wrapping the
