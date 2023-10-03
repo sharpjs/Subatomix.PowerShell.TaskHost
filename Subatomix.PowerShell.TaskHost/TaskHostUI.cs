@@ -11,7 +11,7 @@ namespace Subatomix.PowerShell.TaskHost;
 ///   A wrapper for <see cref="PSHostUserInterface"/> to improve the clarity of
 ///   output from long-running, potentially parallel tasks.
 /// </summary>
-public sealed class TaskHostUI : PSHostUserInterface
+internal sealed class TaskHostUI : PSHostUserInterface
 {
     private readonly PSHostUserInterface _ui;           // Underlying UI implementation
     private readonly TaskHostRawUI       _rawUI;        // Child RawUI wrapper
@@ -36,7 +36,7 @@ public sealed class TaskHostUI : PSHostUserInterface
     ///   its <see cref="PSHostUserInterface.RawUI"/>
     ///   is <see langword="null"/>.
     /// </exception>
-    internal TaskHostUI(PSHostUserInterface ui, Stopwatch? stopwatch)
+    public TaskHostUI(PSHostUserInterface ui, Stopwatch? stopwatch)
     {
         if (ui is null)
             throw new ArgumentNullException(nameof(ui));
