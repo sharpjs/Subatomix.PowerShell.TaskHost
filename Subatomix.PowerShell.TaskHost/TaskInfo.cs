@@ -197,7 +197,7 @@ public sealed class TaskInfo
     /// </remarks>
     internal void Release()
     {
-        if (Interlocked.Decrement(ref _retainCount) <= 0)
+        if (InterlockedEx.DecrementZeroSaturating(ref _retainCount) is 0)
             _all.TryRemove(_id, out _);
     }
 
