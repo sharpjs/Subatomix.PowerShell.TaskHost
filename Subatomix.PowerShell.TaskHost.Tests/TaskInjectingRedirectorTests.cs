@@ -11,7 +11,6 @@ public class TaskInjectingRedirectorTests : RedirectorTestsBase
     public TaskInjectingRedirectorTests()
     {
         Task = new TaskInfo(GetType().Name);
-        Task.Retain();
         TaskInfo.Current = Task;
 
         new TaskInjectingRedirector(Output, Streams, Cmdlet);

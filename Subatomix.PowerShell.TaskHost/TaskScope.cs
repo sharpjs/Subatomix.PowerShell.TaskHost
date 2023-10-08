@@ -36,7 +36,15 @@ public sealed class TaskScope : IDisposable
     /// </remarks>
     public static TaskScope Begin(string? name = null)
     {
-        return new(new(name));
+        var task = new TaskInfo(name);
+        try
+        {
+            return new(task);
+        }
+        finally
+        {
+            task.Release();
+        }
     }
 
     /// <summary>

@@ -42,7 +42,7 @@ public class TaskExtractingRedirectorTests : RedirectorTestsBase
         // content and make it current before invoking the underlying write
 
         TaskInfo.Current.Should().BeSameAs(Task);
-        Task.RetainCount.Should().Be(1);
+        Task.RetainCount.Should().Be(2);
     }
 
     protected override void Verify()
@@ -52,7 +52,7 @@ public class TaskExtractingRedirectorTests : RedirectorTestsBase
         // underlying write
 
         TaskInfo.Current.Should().BeNull();
-        Task.RetainCount.Should().Be(0);
+        Task.RetainCount.Should().Be(1);
 
         base.Verify();
     }

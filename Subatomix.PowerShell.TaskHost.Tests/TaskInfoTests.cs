@@ -30,12 +30,6 @@ public static class TaskInfoTests
         }
 
         [Test]
-        public void RetainCount_Get()
-        {
-            Task.RetainCount.Should().Be(0);
-        }
-
-        [Test]
         public void IsAtBol_Get()
         {
             Task.IsAtBol.Should().BeTrue();
@@ -68,6 +62,12 @@ public static class TaskInfoTests
         public void Id_Get()
         {
             Task.Id.Should().Be(-1);
+        }
+
+        [Test]
+        public void RetainCount_Get()
+        {
+            Task.RetainCount.Should().Be(0);
         }
 
         [Test]
@@ -119,6 +119,12 @@ public static class TaskInfoTests
         public void Id_Get()
         {
             Task.Id.Should().BePositive();
+        }
+
+        [Test]
+        public void RetainCount_Get()
+        {
+            Task.RetainCount.Should().Be(1);
         }
 
         [Test]

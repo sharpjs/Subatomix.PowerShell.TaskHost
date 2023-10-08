@@ -95,7 +95,6 @@ public static partial class TaskEncodingTests
         public Inject_Nested()
         {
             OtherTask = new TaskInfo("Other");
-            OtherTask.Retain();
 
             ExpectedRetainCount--;
         }
@@ -173,7 +172,6 @@ public static partial class TaskEncodingTests
         public Inject_WithCurrentTask()
         {
             Task = new TaskInfo(GetType().Name);
-            Task.Retain();
             TaskInfo.Current = Task;
 
             // By default, expect injection to increment the task's retain count

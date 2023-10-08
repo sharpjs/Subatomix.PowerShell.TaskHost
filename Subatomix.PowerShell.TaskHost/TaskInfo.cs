@@ -35,8 +35,7 @@ public sealed class TaskInfo
     private string? _toString;
 
     /// <summary>
-    ///   Initializes a new <see cref="TaskInfo"/> instance and adds the
-    ///   instance to <see cref="All"/>.
+    ///   Initializes a new <see cref="TaskInfo"/> instance.
     /// </summary>
     /// <param name="name">
     ///   The name of the task, or <see langword="null"/> to generate a default
@@ -48,21 +47,21 @@ public sealed class TaskInfo
     ///     of the new instance.
     ///   </para>
     ///   <para>
-    ///     The new instance has a retain count of <c>0</c> and does <b>not</b>
-    ///     become the <see cref="Current"/> instance.  The developer should
-    ///     increment the retain count by creating a <see cref="TaskScope"/>
-    ///     for the new instance (which sets <see cref="Current"/>) or by
-    ///     invoking <see cref="Retain"/> directly (which does not).
+    ///     The new instance has a <see cref="RetainCount"/> of <c>1</c> and
+    ///     is accessible via <see cref="All"/> and <see cref="Get"/> until the
+    ///     retain count transitions to <c>0</c>.  Use <see cref="TaskScope"/>,
+    ///     <see cref="Retain"/>, and/or <see cref="Release"/> to manage the
+    ///     retain count.
     ///   </para>
     /// </remarks>
     internal TaskInfo(string? name)
     {
-        _parent    = Current;
-        _id        = Interlocked.Increment(ref _counter);
-        _encodedId = TaskEncoding.EncodeId(_id);
-        _name      = name ?? Invariant($"Task {_id}");
-
-        _all[_id]  = this;
+        _parent      = Current;
+        _id          = Interlocked.Increment(ref _counter);
+        _encodedId   = TaskEncoding.EncodeId(_id);
+        _name        = name ?? Invariant($"Task {_id}");
+        _retainCount = 1;
+        _all[_id]    = this;
     }
 
     /// <summary>
@@ -149,8 +148,15 @@ public sealed class TaskInfo
     }
 
     /// <summary>
-    ///   Gets the retain count.
+    ///   Gets the retain count of the task.
     /// </summary>
+    /// <remarks>
+    ///   The initial retain count of a task is <c>1</c>.  The task remains
+    ///   accessible via <see cref="All"/> and <see cref="Get"/> until the
+    ///   retain count transitions to <c>0</c>.  Use <see cref="TaskScope"/>,
+    ///   <see cref="Retain"/>, and/or <see cref="Release"/> to manage the
+    ///   retain count.
+    /// </remarks>
     internal long RetainCount => Volatile.Read(ref _retainCount);
 
     /// <summary>
@@ -160,7 +166,7 @@ public sealed class TaskInfo
     internal bool IsAtBol { get; set; } = true;
 
     /// <summary>
-    ///   gets the task with the specified unique identifier, or
+    ///   Gets the task with the specified unique identifier, or
     ///   <see langword="null"/> if no such task exists.
     /// </summary>
     /// <param name="id">
@@ -177,11 +183,12 @@ public sealed class TaskInfo
     }
 
     /// <summary>
-    ///   Increments the task's retain count.
+    ///   Increments the retain count of the task.
     /// </summary>
     /// <remarks>
-    ///   While the retain count is positive, the task is accessible via
-    ///   <see cref="All"/> and <see cref="Get"/>.
+    ///   The initial retain count of a task is <c>1</c>.  The task remains
+    ///   accessible via <see cref="All"/> and <see cref="Get"/> until the
+    ///   retain count transitions to <c>0</c>.
     /// </remarks>
     internal void Retain()
     {
@@ -189,11 +196,17 @@ public sealed class TaskInfo
     }
 
     /// <summary>
-    ///   Decrements the task's retain count.
+    ///   Decrements the retain count of the task.
     /// </summary>
     /// <remarks>
-    ///   When the retain count reaches zero, the task becomes inaccessible via
-    ///   <see cref="All"/> and <see cref="Get"/>.
+    ///   <para>
+    ///     The initial retain count of a task is <c>1</c>.  The task remains
+    ///     accessible via <see cref="All"/> and <see cref="Get"/> until the
+    ///     retain count transitions to <c>0</c>.
+    ///   </para>
+    ///   <para>
+    ///     If the retain count is already <c>0</c>, this method has no effect.
+    ///   </para>
     /// </remarks>
     internal void Release()
     {
