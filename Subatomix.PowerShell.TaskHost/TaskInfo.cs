@@ -54,7 +54,7 @@ public sealed class TaskInfo
     ///     retain count.
     ///   </para>
     /// </remarks>
-    internal TaskInfo(string? name)
+    public TaskInfo(string? name)
     {
         _parent      = Current;
         _id          = Interlocked.Increment(ref _counter);
