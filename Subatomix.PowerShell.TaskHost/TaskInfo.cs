@@ -157,7 +157,7 @@ public sealed class TaskInfo
     ///   <see cref="Retain"/>, and/or <see cref="Release"/> to manage the
     ///   retain count.
     /// </remarks>
-    internal long RetainCount => Volatile.Read(ref _retainCount);
+    public long RetainCount => Volatile.Read(ref _retainCount);
 
     /// <summary>
     ///   Gets or sets whether the task's output is at the beginning of a line.
@@ -190,7 +190,7 @@ public sealed class TaskInfo
     ///   accessible via <see cref="All"/> and <see cref="Get"/> until the
     ///   retain count transitions to <c>0</c>.
     /// </remarks>
-    internal void Retain()
+    public void Retain()
     {
         Interlocked.Increment(ref _retainCount);
     }
@@ -208,7 +208,7 @@ public sealed class TaskInfo
     ///     If the retain count is already <c>0</c>, this method has no effect.
     ///   </para>
     /// </remarks>
-    internal void Release()
+    public void Release()
     {
         if (InterlockedEx.DecrementZeroSaturating(ref _retainCount) is 0)
             _all.TryRemove(_id, out _);
