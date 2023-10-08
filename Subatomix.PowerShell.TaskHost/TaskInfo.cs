@@ -178,8 +178,8 @@ public sealed class TaskInfo
     /// </returns>
     public static TaskInfo? Get(long id)
     {
-        _all.TryGetValue(id, out var result);
-        return result;
+        _all.TryGetValue(id, out var task);
+        return task;
     }
 
     /// <summary>
