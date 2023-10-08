@@ -81,16 +81,16 @@ public sealed class TaskInfo
     }
 
     /// <summary>
-    ///   Gets the current task, or <see langword="null"/> if there is no
-    ///   current task.
+    ///   Gets or sets the current task, or <see langword="null"/> to indicate
+    ///   no current task.
     /// </summary>
     /// <remarks>
     ///   This property is local to the current thread or asynchronous flow.
     /// </remarks>
     public static TaskInfo? Current
     {
-        get          => _current.Value;
-        internal set => _current.Value = value;
+        get => _current.Value;
+        set => _current.Value = value;
     }
 
     /// <summary>
