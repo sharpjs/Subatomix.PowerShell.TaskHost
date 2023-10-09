@@ -4,7 +4,7 @@
 namespace Subatomix.PowerShell.TaskHost;
 
 /// <summary>
-///   A utility to capture the output of a nested <see cref="PowerShell"/>
+///   A utility to capture the output of a nested <see cref="Sma.PowerShell"/>
 ///   instance and to reissue the output from a particular cmdlet.
 /// </summary>
 internal class Redirector
@@ -17,12 +17,12 @@ internal class Redirector
     ///   Initializes a new <see cref="Redirector"/> instance.
     /// </summary>
     /// <param name="output">
-    ///   The output (success) stream of the nested <see cref="PowerShell"/>
-    ///   instance from which to capture output.
+    ///   The output (success) stream of the nested
+    ///   <see cref="Sma.PowerShell"/> instance from which to capture output.
     /// </param>
     /// <param name="streams">
-    ///   The auxiliary streams of the <see cref="PowerShell"/> instance from
-    ///   which to capture output.
+    ///   The auxiliary streams of the <see cref="Sma.PowerShell"/> instance
+    ///   from which to capture output.
     /// </param>
     /// <param name="target">
     ///   The cmdlet with which to reissue captured output.
