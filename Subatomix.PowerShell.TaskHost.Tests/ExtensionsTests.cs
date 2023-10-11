@@ -39,6 +39,16 @@ public class ExtensionsTests
     }
 
     [Test]
+    public void ShouldByPass_Null()
+    {
+        Invoking(() => (null as PSCmdlet)!.ShouldBypass())
+            .Should().Throw<ArgumentNullException>();
+    }
+
+    // ShouldByPass_False: covered via integration tests
+    // ShouldByPass_True:  covered via integration tests
+
+    [Test]
     public void Unwrap_Null()
     {
         Invoking(() => (null as PSHost)!.Unwrap())
