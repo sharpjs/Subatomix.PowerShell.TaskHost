@@ -25,11 +25,12 @@ internal static class InterlockedEx
 
         while (value > 0)
         {
-            var found = Interlocked.CompareExchange(ref location, value - 1, value);
-            if (found == value)
+            var expected = value;
+            var actual   = Interlocked.CompareExchange(ref location, value -= 1, expected);
+            if (actual == expected)
                 break;
 
-            value = found;
+            value = actual;
         }
 
         return value;
