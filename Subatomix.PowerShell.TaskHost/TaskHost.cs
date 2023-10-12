@@ -13,6 +13,8 @@ namespace Subatomix.PowerShell.TaskHost;
 /// </summary>
 public sealed class TaskHost : PSHost
 {
+    private static TaskHost? _current;
+
     private readonly PSHost     _host;  // Underlying host implementation
     private readonly TaskHostUI _ui;    // Child UI wrapper
     private readonly Guid       _id;    // Host identifier (random)
@@ -76,6 +78,18 @@ public sealed class TaskHost : PSHost
     public TaskHost(PSHost host, bool withElapsed)
         : this(host, withElapsed ? Stopwatch.StartNew() : null) { }
 
+    /// <summary>
+    ///   Gets the global current instance, or <see langword="null"/> if there
+    ///   is no current instance.
+    /// </summary>
+    /// <remarks>
+    ///   Use this property to detect and reuse an existing instance and thus
+    ///   avoid unnecessary nesting of <see cref="TaskHost"/> instances.
+    ///   Nesting <i>works</i>, but the resulting duplication of output line
+    ///   headers is unlikely to be what a user wants.
+    /// </remarks>
+    public static TaskHost? Current => Volatile.Read(ref _current);
+
     /// <inheritdoc/>
     public override Guid InstanceId
         => _id;
@@ -114,6 +128,33 @@ public sealed class TaskHost : PSHost
         set => _host.DebuggerEnabled = value;
     }
 
+    /// <summary>
+    ///   Gets the current instance, if any; otherwise, sets the specified
+    ///   instance as the current instance.
+    /// </summary>
+    /// <param name="host">
+    ///   <para>
+    ///     An instance to become current if there is no current instance.
+    ///   </para>
+    ///   <para>
+    ///     On return, this parameter is set to the actual current instance.
+    ///   </para>
+    /// </param>
+    /// <returns>
+    ///   A disposable scope object.  The developer should dispose this object
+    ///   when the a current <see cref="TaskHost"/> is no longer needed.
+    /// </returns>
+    public static IDisposable GetOrSetCurrent(ref TaskHost host)
+    {
+        var existing = Interlocked.CompareExchange(ref _current, host, comparand: null);
+
+        if (existing is null)
+            return new RootScope();
+
+        host = existing;
+        return new NestedScope();
+    }
+
     /// <inheritdoc/>
     public override void EnterNestedPrompt()
         => _host.EnterNestedPrompt();
@@ -133,4 +174,14 @@ public sealed class TaskHost : PSHost
     /// <inheritdoc/>
     public override void SetShouldExit(int exitCode)
         => _host.SetShouldExit(exitCode);
+
+    public sealed class RootScope : IDisposable
+    {
+        public void Dispose() => Volatile.Write(ref _current, null);
+    }
+
+    private sealed class NestedScope : IDisposable
+    {
+        public void Dispose() { }
+    }
 }

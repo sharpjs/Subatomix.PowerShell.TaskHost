@@ -6,10 +6,10 @@ using System.Globalization;
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
-[TestFixtureSource(nameof(Bools))]
+[TestFixtureSource(nameof(Booleans))]
 public class TaskHostTests : TestHarnessBase
 {
-    public static bool[] Bools = { false, true };
+    public static bool[] Booleans = { false, true };
 
     private TaskHost                     Host       { get; }
 
@@ -29,6 +29,46 @@ public class TaskHostTests : TestHarnessBase
         InnerHost.Setup(h => h.UI  ).Returns(InnerUI.Object);
 
         Host = new TaskHost(InnerHost.Object, withElapsed);
+    }
+
+    [Test, NonParallelizable]
+    public void Current_Get()
+    {
+        TaskHost.Current.Should().BeNull();
+    }
+
+    [Test, NonParallelizable]
+    public void GetOrSetCurrent()
+    {
+        var host0 = Host; // from test setup
+        var host1 = new TaskHost(InnerHost.Object, withElapsed: false);
+        TaskHost host;
+
+        // Root case:
+        // - no TaskHost is current
+        // - host0 becomes current
+        // - ref host argument acts as an input
+        host = host0;
+        using (TaskHost.GetOrSetCurrent(ref host))
+        {
+            host            .Should().BeSameAs(host0);
+            TaskHost.Current.Should().BeSameAs(host0);
+
+            // Nested case:
+            // - host0 is current
+            // - host1 does *not* become current
+            // - ref host argument acts as an output, is set to host0
+            host = host1;
+            using (TaskHost.GetOrSetCurrent(ref host))
+            {
+                host            .Should().BeSameAs(host0); // *not* host1
+                TaskHost.Current.Should().BeSameAs(host0); // *not* host1
+            }
+
+            TaskHost.Current.Should().BeSameAs(host0);
+        }
+
+        TaskHost.Current.Should().BeNull();
     }
 
     [Test]
