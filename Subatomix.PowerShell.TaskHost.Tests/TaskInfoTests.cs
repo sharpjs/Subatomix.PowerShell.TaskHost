@@ -143,9 +143,9 @@ public static class TaskInfoTests
         [Test]
         public void Retain()
         {
-            Task.Retain(); // retain count => 1
+            Task.Retain(); // retain count => 2
 
-            Task.RetainCount     .Should().Be(1);
+            Task.RetainCount     .Should().Be(2);
             TaskInfo.Get(Task.Id).Should().BeSameAs(Task);
             TaskInfo.All         .Should().Contain(Task.Id, Task);
         }
@@ -153,18 +153,7 @@ public static class TaskInfoTests
         [Test]
         public void Release()
         {
-            Task.Release(); // retain count => -1; task removed from All
-
-            Task.RetainCount     .Should().Be(-1);
-            TaskInfo.Get(Task.Id).Should().BeNull();
-            TaskInfo.All         .Should().NotContain(Task.Id, Task);
-        }
-
-        [Test]
-        public void RetainThenRelease()
-        {
-            Task.Retain();  // retain count => 1
-            Task.Release(); // retain count => 0
+            Task.Release(); // retain count => 0; task removed from All
 
             Task.RetainCount     .Should().Be(0);
             TaskInfo.Get(Task.Id).Should().BeNull();
@@ -172,11 +161,18 @@ public static class TaskInfoTests
         }
 
         [Test]
-        public void ReleaseThenRetain()
+        public void Release_Multiple()
         {
-            Task.Release(); // retain count => -1; task removed from All
-            Task.Retain();  // retain count =>  0
-            Task.Retain();  // retain count => +1
+            Task.Release(); // retain count => 0; task removed from All
+
+            Release(); // Reuse test method
+        }
+
+        [Test]
+        public void Release_ThenRetain()
+        {
+            Task.Release(); // retain count => 0; task removed from All
+            Task.Retain();  // retain count => 1; task does *not* reappear in All
 
             Task.RetainCount     .Should().Be(1);
             TaskInfo.Get(Task.Id).Should().BeNull();
@@ -191,7 +187,7 @@ public static class TaskInfoTests
     }
 
     [TestFixture]
-    public class WithDefaultName : Invariant
+    public class WithDefaultName : Nonvirtual
     {
         protected override (TaskInfo task, TaskInfo? parentTask) CreateTask()
             => (new(name: null), null);
@@ -204,7 +200,7 @@ public static class TaskInfoTests
     }
 
     [TestFixture]
-    public class WithCustomName : Invariant
+    public class WithCustomName : Nonvirtual
     {
         protected override (TaskInfo task, TaskInfo? parentTask) CreateTask()
             => (new(name: "Test"), null);
@@ -217,7 +213,7 @@ public static class TaskInfoTests
     }
 
     [TestFixture]
-    public class WithParent : Invariant
+    public class WithParent : Nonvirtual
     {
         protected override (TaskInfo task, TaskInfo? parentTask) CreateTask()
         {
