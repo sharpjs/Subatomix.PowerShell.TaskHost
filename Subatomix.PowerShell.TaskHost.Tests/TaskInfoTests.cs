@@ -265,7 +265,7 @@ public static class TaskInfoTests
         }
 
         [Test]
-        public void Name_Set()
+        public new void Name_Set()
         {
             Name_Get();
             FullName_Get();
