@@ -36,7 +36,7 @@ internal sealed class DefaultStreamsFixup : IDisposable
     /// <remarks>
     ///   ⚠ This method uses a PowerShell internal API.  It is possible that
     ///   some future version of PowerShell changes that API, breaking this
-    ///   method.  In that case, this class takes care to fail gracefully: the
+    ///   method.  In that case, this method takes care to fail gracefully: the
     ///   <paramref name="cmdlet"/> output and error streams retain default
     ///   routing, which might bypass the current host.
     /// </remarks>
