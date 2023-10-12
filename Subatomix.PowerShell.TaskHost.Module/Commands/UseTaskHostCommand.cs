@@ -7,41 +7,11 @@ namespace Subatomix.PowerShell.TaskHost.Commands;
 public class UseTaskHostCommand : Command
 {
     // -WithElapsed
-    [Parameter()]
+    [Parameter]
     public SwitchParameter WithElapsed { get; set; }
-
-    private static int  _depth;
-    private        bool _isNested;
-
-    protected override bool ShouldBypass
-        // Avoid duplicate hosts
-        => _isNested || base.ShouldBypass;
-
-    protected override void ProcessRecord()
-    {
-        _isNested = Interlocked.Increment(ref _depth) > 1;
-
-        try
-        {
-            base.ProcessRecord();
-        }
-        finally
-        {
-            Interlocked.Decrement(ref _depth);
-        }
-    }
 
     protected override void Configure(Invocation invocation)
     {
-        invocation.UseTaskExtractingRedirection(this);
-
-        // Typically, the value of $Host is an instance of InternalPSHost whose
-        // ExternalHost property exposes the actual host.
-        var host = Host.Unwrap();
-
-        if (host.UI is not null)
-            invocation.UseHost(new TaskHost(Host, WithElapsed));
-        else
-            WriteWarning("A Use-TaskHost command will have no effect because $Host.UI is null.");
+        invocation.UseTaskHost(this, WithElapsed);
     }
 }

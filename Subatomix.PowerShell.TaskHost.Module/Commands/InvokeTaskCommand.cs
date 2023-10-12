@@ -8,19 +8,11 @@ public class InvokeTaskCommand : Command
 {
     // -Name
     [Parameter(Mandatory = true, Position = -1)]
-    [AllowNull]
-    [AllowEmptyString]
+    [AllowNull, AllowEmptyString]
     public string? Name { get; set; }
-
-    protected override void ProcessRecord()
-    {
-        using var scope = TaskScope.Begin(Name);
-
-        base.ProcessRecord();
-    }
 
     protected override void Configure(Invocation invocation)
     {
-        invocation.UseTaskInjectingRedirection(this);
+        invocation.UseTask(this, Name);
     }
 }

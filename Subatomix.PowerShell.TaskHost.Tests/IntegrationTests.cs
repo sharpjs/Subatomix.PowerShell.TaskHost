@@ -1,6 +1,9 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
@@ -134,6 +137,66 @@ public class IntegrationTests : TestHarnessBase
 
         output   .Should().BeEmpty();
         exception.Should().BeNull();
-        warning  .Should().Be("A Use-TaskHost command will have no effect because $Host.UI is null.");
+        warning  .Should().Be("TaskHost is bypassed because $Host.UI is null.");
+    }
+
+    [Test]
+    public void Invocation_UseTaskHost_Twice()
+    {
+        var (output, exception) = ScriptExecutor.Execute(
+            _host.Object,
+            """
+            function f {
+                [CmdletBinding()] param ()
+                process {
+                    $i = [Subatomix.PowerShell.TaskHost.Invocation]::new()
+                    try {
+                        $i.UseTaskHost($PSCmdlet, $true) > $null
+                        $i.UseTaskHost($PSCmdlet, $true) > $null # Should throw
+                    }
+                    finally {
+                        $i.Dispose()
+                    }
+                }
+            }
+            f
+            """
+        );
+
+        output   .Should().BeEmpty();
+        exception.Should().BeOfType<MethodInvocationException>()
+            .Which.InnerException.Should().BeOfType<InvalidOperationException>()
+            .Which.Message       .Should().Match("The invocation has been configured*");
+            
+    }
+
+    [Test]
+    public void Invocation_UseTask_Twice()
+    {
+        var (output, exception) = ScriptExecutor.Execute(
+            _host.Object,
+            """
+            function f {
+                [CmdletBinding()] param ()
+                process {
+                    $i = [Subatomix.PowerShell.TaskHost.Invocation]::new()
+                    try {
+                        $i.UseTask($PSCmdlet, "A") > $null
+                        $i.UseTask($PSCmdlet, "B") > $null # Should throw
+                    }
+                    finally {
+                        $i.Dispose()
+                    }
+                }
+            }
+            f
+            """
+        );
+
+        output   .Should().BeEmpty();
+        exception.Should().BeOfType<MethodInvocationException>()
+            .Which.InnerException.Should().BeOfType<InvalidOperationException>()
+            .Which.Message       .Should().Match("The invocation has been configured*");
+            
     }
 }
