@@ -1,9 +1,6 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
-using System.Globalization;
-using System.Text.RegularExpressions;
-
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
