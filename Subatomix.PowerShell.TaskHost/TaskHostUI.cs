@@ -58,9 +58,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void Write(string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.Write(text);
             Update(task, EndsWithEol(text));
         }
@@ -69,9 +71,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void Write(ConsoleColor foreground, ConsoleColor background, string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.Write(foreground, background, text);
             Update(task, EndsWithEol(text));
         }
@@ -80,9 +84,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteLine()
     {
+        var task = GetCurrentTask();
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteLine();
             Update(task, eol: true);
         }
@@ -91,9 +97,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteLine(string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteLine(text);
             Update(task, eol: true);
         }
@@ -102,9 +110,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteLine(ConsoleColor foreground, ConsoleColor background, string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteLine(foreground, background, text);
             Update(task, eol: true);
         }
@@ -113,9 +123,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteDebugLine(string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteDebugLine(text);
             Update(task, eol: true);
         }
@@ -124,9 +136,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteVerboseLine(string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteVerboseLine(text);
             Update(task, eol: true);
         }
@@ -135,9 +149,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override void WriteWarningLine(string? text)
     {
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteWarningLine(text);
             Update(task, eol: true);
         }
@@ -150,9 +166,11 @@ internal sealed class TaskHostUI : PSHostUserInterface
         if (string.IsNullOrEmpty(text))
             return;
 
+        using var _ = ExtractOrGetCurrentTask(ref text, out var task);
+
         lock (_console)
         {
-            var task = Prepare();
+            Prepare(task);
             _ui.WriteErrorLine(text);
             Update(task, eol: true);
         }
@@ -181,10 +199,12 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override string ReadLine()
     {
+        var task = GetCurrentTask();
+
         lock (_console)
         {
             var result = _ui.ReadLine();
-            Update(GetCurrentTask(), eol: true);
+            Update(task, eol: true);
             return result;
         }
     }
@@ -192,10 +212,12 @@ internal sealed class TaskHostUI : PSHostUserInterface
     /// <inheritdoc/>
     public override SecureString ReadLineAsSecureString()
     {
+        var task = GetCurrentTask();
+
         lock (_console)
         {
             var result = _ui.ReadLineAsSecureString();
-            Update(GetCurrentTask(), eol: true);
+            Update(task, eol: true);
             return result;
         }
     }
@@ -234,16 +256,22 @@ internal sealed class TaskHostUI : PSHostUserInterface
                 caption, message, userName, targetName, allowedCredentialTypes, options);
     }
 
+    private TaskScope? ExtractOrGetCurrentTask(ref string? text, out TaskInfo task)
+    {
+        var scope = TaskEncoding.Extract(ref text);
+            task  = scope?.Task ?? GetCurrentTask();
+
+        return scope;
+    }
+
     private TaskInfo GetCurrentTask()
     {
         return TaskInfo.Current ?? _nullTask;
     }
 
-    private TaskInfo Prepare()
+    private void Prepare(TaskInfo task)
     {
         // Assume locked _console
-
-        var task = GetCurrentTask();
 
         if (_console.IsAtBol)
         {
@@ -262,12 +290,10 @@ internal sealed class TaskHostUI : PSHostUserInterface
             // The console is not at BOL, but this task was the last one to
             // write to it.  The console state is as the task expects. There is
             // no need to modify the console state or to emit any header.
-            return task;
+            return;
         }
 
         PrepareAtBol(task);
-
-        return task;
     }
 
     private void PrepareAtBol(TaskInfo task)
