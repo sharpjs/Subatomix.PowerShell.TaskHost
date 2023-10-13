@@ -1,6 +1,8 @@
 // Copyright 2023 Subatomix Research Inc.
 // SPDX-License-Identifier: ISC
 
+using Microsoft.PowerShell.Commands;
+
 namespace Subatomix.PowerShell.TaskHost;
 
 [TestFixture]
@@ -41,6 +43,32 @@ public class IntegrationTests : TestHarnessBase
     [Test]
     public void Maximal()
     {
+        _ui.Setup(u => u.Write(
+            It.IsAny<ConsoleColor>(),
+            It.IsAny<ConsoleColor>(),
+            It.IsRegex(@"\[\+\d\d:\d\d:\d\d\]")
+        ));
+
+        _ui.Setup(u => u.Write(
+            It.IsAny<ConsoleColor>(),
+            It.IsAny<ConsoleColor>(),
+            It.IsRegex(@"\[Test\]:")
+        ));
+
+        _rawUI.SetupProperty(u => u.ForegroundColor);
+        _rawUI.SetupProperty(u => u.BackgroundColor);
+
+        _ui.Setup(u => u.WriteDebugLine  ("debug"  )).Verifiable();
+        _ui.Setup(u => u.WriteVerboseLine("verbose")).Verifiable();
+        _ui.Setup(u => u.WriteWarningLine("warning")).Verifiable();
+
+        _ui.Setup(u => u.WriteInformation(It.IsNotNull<InformationRecord>())).Verifiable();
+        _ui.Setup(u => u.WriteLine(
+            It.IsAny<ConsoleColor>(),
+            It.IsAny<ConsoleColor>(),
+            "information"
+        )).Verifiable();
+
         var (output, exception) = ScriptExecutor.Execute(
             _host.Object,
             """
@@ -49,12 +77,19 @@ public class IntegrationTests : TestHarnessBase
             $TestVarA = 42
             $TestVarB = "eh"
 
+            $DebugPreference = $VerbosePreference = $ErrorActionPreference = "Continue"
+
             Use-TaskHost -WithElapsed {
-                Invoke-Task TaskX {
+                Invoke-Task Test {
                     Use-TestModuleA
                     Use-TestModuleB
                     $TestVarA
                     $TestVarB
+                    Write-Debug   "debug"
+                    Write-Verbose "verbose"
+                    Write-Host    "information"
+                    Write-Warning "warning"
+                    Write-Error   "error"
                 }
             }
             """
@@ -68,28 +103,46 @@ public class IntegrationTests : TestHarnessBase
             new PSObject("eh")
         });
 
-        exception.Should().BeNull();
+        exception.Should().BeOfType<WriteErrorException>()
+            .Which.Message.Should().Be("error");
     }
 
     [Test]
     public void NestedUseTaskHost()
     {
+        // To verify prefix is not duplicated
+        var sequence = new MockSequence();
+
+        _ui.InSequence(sequence)
+            .Setup(u => u.Write(
+                It.IsAny<ConsoleColor>(),
+                It.IsAny<ConsoleColor>(),
+                It.IsRegex(@"\[\+\d\d:\d\d:\d\d\]")
+            ));
+
+        _ui.InSequence(sequence)
+            .Setup(u => u.Write(
+                It.IsAny<ConsoleColor>(),
+                It.IsAny<ConsoleColor>(),
+                It.IsRegex(@"\[Test\]:")
+            ));
+
+        _ui.InSequence(sequence)
+            .Setup(u => u.WriteWarningLine("Foo"))
+            .Verifiable();
+
         var (output, exception) = ScriptExecutor.Execute(
             _host.Object,
             """
             Use-TaskHost -WithElapsed {
                 Use-TaskHost -WithElapsed {
-                    Invoke-Task Test { "foo" }
+                    Invoke-Task Test { Write-Warning Foo }
                 }
             }
             """
         );
 
-        output.Should().BeEquivalentTo(new[]
-        {
-            new PSObject("foo")
-        });
-
+        output   .Should().BeEmpty();
         exception.Should().BeNull();
     }
 
@@ -111,6 +164,39 @@ public class IntegrationTests : TestHarnessBase
             new PSObject("foo")
         });
 
+        exception.Should().BeNull();
+    }
+
+    [Test]
+    public void InForEachObjectParallel()
+    {
+        _ui.Setup(u => u.Write(
+            It.IsAny<ConsoleColor>(),
+            It.IsAny<ConsoleColor>(),
+            It.IsRegex(@"\[\+\d\d:\d\d:\d\d\]")
+        ));
+
+        _ui.Setup(u => u.Write(
+            It.IsAny<ConsoleColor>(),
+            It.IsAny<ConsoleColor>(),
+            It.IsRegex(@"\[Test\]:")
+        ));
+
+        _ui.Setup(u => u.WriteWarningLine("Foo")).Verifiable();
+
+        var (output, exception) = ScriptExecutor.Execute(
+            _host.Object,
+            """
+            Use-TaskHost -WithElapsed {
+                1 | ForEach-Object -Parallel {
+                    Import-Module .\TaskHost.psd1
+                    Invoke-Task Test { Write-Warning Foo }
+                }
+            }
+            """
+        );
+
+        output   .Should().BeEmpty();
         exception.Should().BeNull();
     }
 
